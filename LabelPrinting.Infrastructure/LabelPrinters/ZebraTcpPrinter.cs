@@ -1,6 +1,6 @@
 ﻿using System.Net.Sockets;
 using System.Text;
-using LabelPrinting.Domain.Entities;
+using LabelPrinting.Domain.Entities.Label;
 using LabelPrinting.Domain.Interfaces;
 
 namespace LabelPrinting.Infrastructure.Printers
@@ -28,10 +28,10 @@ namespace LabelPrinting.Infrastructure.Printers
                     $@"^XA
                     ^PW812
                     ^LL1218
-                    ^FO102,102^ADN,50,30^FD{label.ProductName}^FS
+                    ^FO102,102^ADN,50,30^FD{label.Name}^FS
                     ^FO102,200^BY3
                     ^BCN,200,Y,N,N
-                    ^FD{label.Barcode}^FS
+                    ^FD{label.Name}^FS
                     ^XZ";
 
                 var bytes = Encoding.ASCII.GetBytes(zpl);

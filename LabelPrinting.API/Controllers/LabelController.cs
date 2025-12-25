@@ -1,6 +1,7 @@
 ﻿using LabelPrinting.Application.Labels.Dtos;
 using LabelPrinting.Application.Labels.Services;
 using LabelPrinting.Domain.Entities;
+using LabelPrinting.Domain.Entities.Label;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LabelPrinting.API.Controllers;
@@ -21,7 +22,7 @@ public class LabelController : ControllerBase
     {
         try
         {
-            var label = new Label(request.ProductName, request.Barcode);
+            var label = new Label();
             await _labelService.PrintLabelAsync(label, request.PrinterId);
             return Ok("Label sent to printer");
         }

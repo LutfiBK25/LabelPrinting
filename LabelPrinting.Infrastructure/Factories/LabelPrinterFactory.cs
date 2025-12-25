@@ -1,5 +1,5 @@
 ﻿using LabelPrinting.Application.Printers.Interfaces;
-using LabelPrinting.Domain.Entities;
+using LabelPrinting.Domain.Entities.Printer;
 using LabelPrinting.Domain.Interfaces;
 using LabelPrinting.Infrastructure.Printers;
 

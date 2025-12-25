@@ -1,4 +1,4 @@
-﻿using LabelPrinting.Domain.Entities;
+﻿using LabelPrinting.Domain.Entities.Label;
 using LabelPrinting.Domain.Interfaces;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
@@ -28,14 +28,14 @@ namespace LabelPrinting.Infrastructure.Printers
                     page.Margin(10);
                     page.Content().Column(col =>
                     {
-                        col.Item().Text(label.ProductName).FontSize(20).Bold().AlignCenter();
+                        col.Item().Text(label.Name).FontSize(20).Bold().AlignCenter();
                         col.Item().AlignCenter()
                         .AlignMiddle()
                         .Width(268)
                         .Height(50)
                         .Svg(size =>
                         {
-                            var content = label.Barcode;
+                            var content = label.Name;
                             var writer = new Code128Writer(); // correct format for long strings
                             var eanCode = writer.encode(content, BarcodeFormat.CODE_128, (int)size.Width, (int)size.Height);
                             var renderer = new SvgRenderer { FontName = "Lato", FontSize = 16 }; // FontSize : is for the barcode text
@@ -45,7 +45,7 @@ namespace LabelPrinting.Infrastructure.Printers
                 });
             }).GeneratePdf();
 
-            File.WriteAllBytes($"{label.ProductName}.pdf", pdf);
+            File.WriteAllBytes($"{label.Name}.pdf", pdf);
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿using LabelPrinting.Domain.Entities;
+﻿using LabelPrinting.Domain.Entities.Label;
 
 namespace LabelPrinting.Application.Labels.Services
 {

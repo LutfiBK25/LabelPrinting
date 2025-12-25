@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LabelPrinting.Application",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LabelPrinting.Domain", "LabelPrinting.Domain\LabelPrinting.Domain.csproj", "{A4353DA6-E582-4804-8A5E-02BE63D8C527}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LabelDesigner", "LabelDesigner\LabelDesigner.csproj", "{52F3D2EC-2027-4A0F-B13E-441F977F5522}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{A4353DA6-E582-4804-8A5E-02BE63D8C527}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A4353DA6-E582-4804-8A5E-02BE63D8C527}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A4353DA6-E582-4804-8A5E-02BE63D8C527}.Release|Any CPU.Build.0 = Release|Any CPU
+		{52F3D2EC-2027-4A0F-B13E-441F977F5522}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{52F3D2EC-2027-4A0F-B13E-441F977F5522}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{52F3D2EC-2027-4A0F-B13E-441F977F5522}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{52F3D2EC-2027-4A0F-B13E-441F977F5522}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

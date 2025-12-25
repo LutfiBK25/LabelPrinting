@@ -1,4 +1,4 @@
-﻿using LabelPrinting.Domain.Entities;
+﻿using LabelPrinting.Domain.Entities.Printer;
 using LabelPrinting.Domain.Repositories;
 using LabelPrinting.Infrastructure.Presistence;
 using Microsoft.EntityFrameworkCore;

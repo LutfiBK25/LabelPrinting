@@ -1,4 +1,4 @@
-﻿namespace LabelPrinting.Domain.Entities
+﻿namespace LabelPrinting.Domain.Entities.Printer
 {
     public class Printer
     {
