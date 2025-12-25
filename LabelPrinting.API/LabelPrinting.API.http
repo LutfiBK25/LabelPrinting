@@ -1,0 +1,35 @@
+@LabelPrinting.API_HostAddress = http://localhost:5042
+
+###
+POST http://localhost:5000/api/label/print
+Content-Type: application/json
+
+{
+    "productName": "1101782",
+    "barcode": "U341555232",
+    "PrinterId": "5CCE06D6-1A74-47EC-76B5-08DE4383C514"
+}
+
+###
+GET http://localhost:5000/api/printer
+Content-Type: application/json
+
+###
+GET http://localhost:5000/api/printer/5CCE06D6-1A74-47EC-76B5-08DE4383C514
+Content-Type: application/json
+
+###
+POST  http://localhost:5000/api/printer/test/5CCE06D6-1A74-47EC-76B5-08DE4383C514
+Content-Type: application/json
+
+###
+POST http://localhost:5000/api/printer
+Content-Type: application/json
+
+{
+    "Name" : "Zebra Printer 3",
+    "IP" : "127.0.0.1",
+    "PORT" : 9100,
+    "TYPE" : "ZEBRA",
+    "ACTIVE" : true
+}
