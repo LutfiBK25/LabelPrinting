@@ -9,7 +9,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using LabelPrinting.Domain.Entities.Label.Elements;
-namespace LabelDesigner
+namespace LabelDesigner.Views
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
