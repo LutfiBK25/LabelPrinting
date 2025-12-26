@@ -1,13 +1,7 @@
-﻿using System.Text;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using LabelPrinting.Domain.Entities.Label.Elements;
 namespace LabelDesigner.Views
 {
@@ -23,8 +17,7 @@ namespace LabelDesigner.Views
         // Selected Element
         private UIElement? _selectedElement;
 
-        // Dragging State
-        private bool _isDragging = false;
+
 
         public MainWindow()
         {
@@ -52,24 +45,6 @@ namespace LabelDesigner.Views
             this.Focusable = true;
             this.Focus(); // set focus to the window
             LabelCanvas.MouseLeftButtonDown += Canvas_MouseLeftButtonDown;
-        }
-
-        // New method:
-        private void Canvas_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            // Only deselect if clicking directly on canvas (not on a child element)
-            if (e.Source == LabelCanvas)
-            {
-                if (_selectedElement != null && _selectedElement is TextBox tb)
-                {
-                    tb.IsReadOnly = true;
-                    tb.Focusable = false;  // Disable focus to prevent selection
-                    tb.Cursor = Cursors.Arrow;
-                    Keyboard.ClearFocus(); // Clear focus from textbox
-                }
-                _selectedElement = null;
-                HighlightSelectedElement(null);
-            }
         }
 
         // Set canvas size during initialization
@@ -122,19 +97,43 @@ namespace LabelDesigner.Views
             }
         }
 
+        // Canvas method:
+        private void Canvas_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            // Only deselect if clicking directly on canvas (not on a child element)
+            if (e.Source == LabelCanvas)
+            {
+                if (_selectedElement != null && _selectedElement is TextBox tb)
+                {
+                    tb.IsReadOnly = true;
+                    tb.Focusable = false;  // Disable focus to prevent selection
+                    tb.Cursor = Cursors.Arrow;
+                    Keyboard.ClearFocus(); // Clear focus from textbox
+                }
+                _selectedElement = null;
+                HighlightSelectedElement(null);
+            }
+        }
 
-        // Dragging Logic
+        private void MainWindow_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Delete && _selectedElement != null)
+            {
+                LabelCanvas.Children.Remove(_selectedElement);
+                _selectedElement = null;
+            }
+        }
+
+        // Dragging Element
         private void MakeDraggable(UIElement element)
         {
             Point startPoint = default;
-
             element.MouseLeftButtonDown += (s, e) =>
             {
                 // Don't start dragging if the textbox is in edit mode
                 if (element is TextBox tb && !tb.IsReadOnly)
                     return;
 
-                _isDragging = true;
                 startPoint = e.GetPosition(LabelCanvas);
                 element.CaptureMouse();
                 _selectedElement = element;
@@ -144,7 +143,6 @@ namespace LabelDesigner.Views
 
             element.MouseLeftButtonUp += (s, e) =>
             {
-                _isDragging = false;
                 element.ReleaseMouseCapture();
                 e.Handled = true;
             };
@@ -258,14 +256,7 @@ namespace LabelDesigner.Views
                 }
             };
         }
-        private void MainWindow_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.Key == Key.Delete && _selectedElement != null)
-            {
-                LabelCanvas.Children.Remove(_selectedElement);
-                _selectedElement = null;
-            }
-        }
+
 
         // Highlight selected element
         private void HighlightSelectedElement(UIElement? element)
