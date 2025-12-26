@@ -81,8 +81,21 @@ namespace LabelDesigner.Views
                 double offsetX = position.X - _startPoint.X;
                 double offsetY = position.Y - _startPoint.Y;
 
-                Canvas.SetLeft(element, Canvas.GetLeft(element) + offsetX);
-                Canvas.SetTop(element, Canvas.GetTop(element) + offsetY);
+                // Calculate new position
+                double newLeft = Canvas.GetLeft(element) + offsetX;
+                double newTop = Canvas.GetTop(element) + offsetY;
+
+
+                // Clamp inside canvas
+                double elementWidth = (element as FrameworkElement)?.ActualWidth ?? 0;
+                double elementHeight = (element as FrameworkElement)?.ActualHeight ?? 0;
+
+                newLeft = Math.Max(0, Math.Min(newLeft, LabelCanvas.Width - elementWidth));
+                newTop = Math.Max(0, Math.Min(newTop, LabelCanvas.Height - elementHeight));
+
+                Canvas.SetLeft(element, newLeft);
+                Canvas.SetTop(element, newTop);
+
 
                 _startPoint = position;
             };
@@ -110,74 +123,7 @@ namespace LabelDesigner.Views
             LabelCanvas.Height = heightPx;
         }
 
-        private double Snap(double value)
-        {
-            return Math.Round(value / GridSize) * GridSize;
-        }
-
-        UIElement dragged;
-        Point start;
-
-        private void Element_MouseDown(object sender, MouseButtonEventArgs e)
-        {
-            dragged = sender as UIElement;
-            start = e.GetPosition(LabelCanvas);
-            dragged.CaptureMouse();
-        }
-
-        private void Element_MouseMove(object sender, MouseEventArgs e)
-        {
-            if (dragged == null) return;
-
-            Point pos = e.GetPosition(LabelCanvas);
-
-            double left = Snap(pos.X - start.X + Canvas.GetLeft(dragged));
-            double top = Snap(pos.Y - start.Y + Canvas.GetTop(dragged));
-
-            // 🚫 Prevent leaving canvas
-            left = Math.Max(0, Math.Min(left, LabelCanvas.Width - ((FrameworkElement)dragged).ActualWidth));
-            top = Math.Max(0, Math.Min(top, LabelCanvas.Height - ((FrameworkElement)dragged).ActualHeight));
-
-            Canvas.SetLeft(dragged, left);
-            Canvas.SetTop(dragged, top);
-        }
-
-        private void Element_MouseUp(object sender, MouseButtonEventArgs e)
-        {
-            dragged?.ReleaseMouseCapture();
-            dragged = null;
-        }
-
-        private void DrawRulers()
-        {
-            TopRuler.Children.Clear();
-            LeftRuler.Children.Clear();
-
-            for (int x = 0; x < LabelCanvas.Width; x += GridSize)
-            {
-                TopRuler.Children.Add(new Line
-                {
-                    X1 = x,
-                    Y1 = 30,
-                    X2 = x,
-                    Y2 = x % 50 == 0 ? 10 : 20,
-                    Stroke = Brushes.Black
-                });
-            }
-
-            for (int y = 0; y < LabelCanvas.Height; y += GridSize)
-            {
-                LeftRuler.Children.Add(new Line
-                {
-                    X1 = 30,
-                    Y1 = y,
-                    X2 = y % 50 == 0 ? 10 : 20,
-                    Y2 = y,
-                    Stroke = Brushes.Black
-                });
-            }
-        }
-
+        // Set canvas size during initialization
         private void SetLabelSize(double widthInches, double heightInches, int dpi)
         {
             _dpi = dpi;
@@ -188,7 +134,6 @@ namespace LabelDesigner.Views
             LabelCanvas.Width = widthPx;
             LabelCanvas.Height = heightPx;
 
-            DrawRulers();
         }
     }
 }

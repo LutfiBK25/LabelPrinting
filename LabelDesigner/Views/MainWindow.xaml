@@ -42,11 +42,6 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <!-- Top ruler -->
-            <Canvas x:Name="TopRuler" Grid.Row="0" Grid.Column="1" Height="30"/>
-
-            <!-- Left ruler -->
-            <Canvas x:Name="LeftRuler" Grid.Row="1" Grid.Column="0" Width="30"/>
 
             <!-- Label canvas -->
             <Border Grid.Row="1" Grid.Column="1"
