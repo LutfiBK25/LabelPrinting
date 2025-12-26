@@ -16,6 +16,15 @@ namespace LabelDesigner.Views
     /// </summary>
     public partial class MainWindow : Window
     {
+        // Label Size Variables
+        private double _labelWidthIn;
+        private double _labelHeightIn;
+
+        // Dragging Variables
+        private Point _startPoint;
+        private bool _isDragging;
+
+
         public MainWindow()
         {
             InitializeComponent();
@@ -23,7 +32,14 @@ namespace LabelDesigner.Views
             var dlg = new NewLabelWindow();
             if (dlg.ShowDialog() == true)
             {
-                SetLabelSize(dlg.LabelWidthIn, dlg.LabelHeightIn, dlg.Dpi);
+                // Get label size from dialog
+                _labelWidthIn = dlg.LabelWidthIn;
+                _labelHeightIn = dlg.LabelHeightIn;
+                // Update UI Label Size Boxes
+                WidthBox.Text = _labelWidthIn.ToString();
+                HeightBox.Text = _labelHeightIn.ToString();
+
+                SetLabelSize(dlg.LabelWidthIn, dlg.LabelHeightIn);
             }
             else
             {
@@ -31,45 +47,31 @@ namespace LabelDesigner.Views
             }
         }
 
-        // Canvas Variables
-        private int _dpi = 203;
-
-        // Dragging Variables
-        private Point _startPoint;
-        private bool _isDragging;
-
-
         // Set canvas size during initialization
-        private void SetLabelSize(double widthInches, double heightInches, int dpi)
+        private void SetLabelSize(double widthInches, double heightInches)
         {
-            _dpi = dpi;
+            // You can define a scale factor for the designer view, e.g. 100 pixels per inch
+            const double scale = 100;
 
-            double widthPx = widthInches * dpi;
-            double heightPx = heightInches * dpi;
-
-            LabelCanvas.Width = widthPx;
-            LabelCanvas.Height = heightPx;
-
+            LabelCanvas.Width = widthInches * scale;
+            LabelCanvas.Height = heightInches * scale;
         }
+
 
         // Set canvas size based on input width and height in inches
         private void ApplySize_Click(object sender, RoutedEventArgs e)
         {
-            if (!double.TryParse(WidthBox.Text, out double widthInches))
-                return;
+            if (!double.TryParse(WidthBox.Text, out double widthInches)) return;
+            if (!double.TryParse(HeightBox.Text, out double heightInches)) return;
 
-            if (!double.TryParse(HeightBox.Text, out double heightInches))
-                return;
+            _labelWidthIn = widthInches;
+            _labelHeightIn = heightInches;
 
-            double widthPx = widthInches * _dpi; // Convert inches to pixels
-            double heightPx = heightInches * _dpi;
-
-            LabelCanvas.Width = widthPx; // Set canvas size
-            LabelCanvas.Height = heightPx;
+            SetLabelSize(_labelWidthIn, _labelHeightIn);
         }
 
 
-
+        // Dragging Logic
         private void MakeDraggable(UIElement element)
         {
             element.MouseLeftButtonDown += (s, e) =>

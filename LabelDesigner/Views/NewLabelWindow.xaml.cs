@@ -26,13 +26,11 @@ namespace LabelDesigner
 
         public double LabelWidthIn { get; private set; }
         public double LabelHeightIn { get; private set; }
-        public int Dpi { get; private set; }
 
         private void Create_Click(object sender, RoutedEventArgs e)
         {
             LabelWidthIn = double.Parse(WidthBox.Text);
             LabelHeightIn = double.Parse(HeightBox.Text);
-            Dpi = int.Parse(DpiBox.Text);
             DialogResult = true;
         }
     }
