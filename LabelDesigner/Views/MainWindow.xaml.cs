@@ -20,10 +20,11 @@ namespace LabelDesigner.Views
         private double _labelWidthIn;
         private double _labelHeightIn;
 
-        // Dragging Variables
-        private Point _startPoint;
-        private bool _isDragging;
+        // Selected Element
+        private UIElement? _selectedElement;
 
+        // Dragging State
+        private bool _isDragging = false;
 
         public MainWindow()
         {
@@ -44,6 +45,23 @@ namespace LabelDesigner.Views
             else
             {
                 Close();
+            }
+
+            // Make sure the window can capture key events
+            this.KeyDown += MainWindow_KeyDown;
+            this.Focusable = true;
+            this.Focus(); // set focus to the window
+            LabelCanvas.MouseLeftButtonDown += Canvas_MouseLeftButtonDown;
+        }
+
+        // New method:
+        private void Canvas_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            // Only deselect if clicking directly on canvas (not on a child element)
+            if (e.Source == LabelCanvas)
+            {
+                _selectedElement = null;
+                HighlightSelectedElement(null);
             }
         }
 
@@ -83,7 +101,11 @@ namespace LabelDesigner.Views
                     double left = Canvas.GetLeft(fe);
                     double top = Canvas.GetTop(fe);
 
-                    // Clamp positions so element stays fully inside canvas
+                    // Handle NaN values
+                    if (double.IsNaN(left)) left = 0;
+                    if (double.IsNaN(top)) top = 0;
+
+                    // Clamp positions
                     left = Math.Max(0, Math.Min(left, LabelCanvas.Width - fe.ActualWidth));
                     top = Math.Max(0, Math.Min(top, LabelCanvas.Height - fe.ActualHeight));
 
@@ -97,49 +119,65 @@ namespace LabelDesigner.Views
         // Dragging Logic
         private void MakeDraggable(UIElement element)
         {
+            Point startPoint = default;
+
             element.MouseLeftButtonDown += (s, e) =>
             {
+                // Don't start dragging if the textbox is in edit mode
+                if (element is TextBox tb && !tb.IsReadOnly)
+                    return;
+
                 _isDragging = true;
-                _startPoint = e.GetPosition(LabelCanvas);
+                startPoint = e.GetPosition(LabelCanvas);
                 element.CaptureMouse();
-            };
-
-            element.MouseMove += (s, e) =>
-            {
-                if (!_isDragging) return;
-
-                var position = e.GetPosition(LabelCanvas);
-
-                double offsetX = position.X - _startPoint.X;
-                double offsetY = position.Y - _startPoint.Y;
-
-                // Calculate new position
-                double newLeft = Canvas.GetLeft(element) + offsetX;
-                double newTop = Canvas.GetTop(element) + offsetY;
-
-
-                // Clamp inside canvas
-                double elementWidth = (element as FrameworkElement)?.ActualWidth ?? 0;
-                double elementHeight = (element as FrameworkElement)?.ActualHeight ?? 0;
-
-                newLeft = Math.Max(0, Math.Min(newLeft, LabelCanvas.Width - elementWidth));
-                newTop = Math.Max(0, Math.Min(newTop, LabelCanvas.Height - elementHeight));
-
-                Canvas.SetLeft(element, newLeft);
-                Canvas.SetTop(element, newTop);
-
-
-                _startPoint = position;
+                _selectedElement = element;
+                HighlightSelectedElement(element);
+                e.Handled = true;
             };
 
             element.MouseLeftButtonUp += (s, e) =>
             {
                 _isDragging = false;
                 element.ReleaseMouseCapture();
+                e.Handled = true;
+            };
+
+            element.MouseMove += (s, e) =>
+            {
+                // Check if THIS element has mouse capture (is being dragged)
+                if (!element.IsMouseCaptured) return;
+
+                // Don't drag if in edit mode
+                if (element is TextBox tb && !tb.IsReadOnly)
+                    return;
+
+                var position = e.GetPosition(LabelCanvas);
+                double offsetX = position.X - startPoint.X;
+                double offsetY = position.Y - startPoint.Y;
+
+                // Get current position, handling NaN
+                double currentLeft = Canvas.GetLeft(element);
+                double currentTop = Canvas.GetTop(element);
+
+                if (double.IsNaN(currentLeft)) currentLeft = 0;
+                if (double.IsNaN(currentTop)) currentTop = 0;
+
+                double newLeft = currentLeft + offsetX;
+                double newTop = currentTop + offsetY;
+
+                // Clamp inside canvas
+                if (element is FrameworkElement fe)
+                {
+                    newLeft = Math.Max(0, Math.Min(newLeft, LabelCanvas.Width - fe.ActualWidth));
+                    newTop = Math.Max(0, Math.Min(newTop, LabelCanvas.Height - fe.ActualHeight));
+                }
+
+                Canvas.SetLeft(element, newLeft);
+                Canvas.SetTop(element, newTop);
+                startPoint = position;
+                e.Handled = true;
             };
         }
-
-
         // Add Text Element
         private void AddText_Click(object sender, RoutedEventArgs e)
         {
@@ -150,25 +188,97 @@ namespace LabelDesigner.Views
                 Y = 50
             };
 
-            var textBlock = new TextBlock
+            var textBox = new TextBox
             {
                 Text = element.Text,
                 FontSize = 24,
-                Background = Brushes.Transparent
+                Background = Brushes.Transparent,
+                BorderThickness = new Thickness(0),
+                IsReadOnly = true, // start in read-only mode
+                IsHitTestVisible = true,       // make sure it can receive mouse events
+                Padding = new Thickness(2),     // optional: makes it easier to grab
+                Cursor = Cursors.Arrow, // Set initial cursor to arrow
+                Focusable = false  // Add this - prevents text selection when read-only
             };
 
-            Canvas.SetLeft(textBlock, element.X);
-            Canvas.SetTop(textBlock, element.Y);
+            Canvas.SetLeft(textBox, element.X);
+            Canvas.SetTop(textBox, element.Y);
 
-            MakeDraggable(textBlock);
-
-            LabelCanvas.Children.Add(textBlock);
+            MakeDraggable(textBox);
+            MakeEditable(textBox);
+            LabelCanvas.Children.Add(textBox);        
         }
 
+        // Make TextBox Editable on Double Click
+        private void MakeEditable(TextBox textBox)
+        {
+            // Set initial cursor to arrow (for dragging)
+            textBox.Cursor = Cursors.Arrow;
 
+            textBox.MouseDoubleClick += (s, e) =>
+            {
+                textBox.IsReadOnly = false;
+                textBox.Focusable = true;  // Enable focus for editing
+                textBox.Cursor = Cursors.IBeam;
+                textBox.Focus();
+                textBox.SelectAll();
+                e.Handled = true; // Prevent this from triggering other events
+            };
 
+            textBox.KeyDown += (s, e) =>
+            {
+                if (e.Key == Key.Enter && !textBox.IsReadOnly)
+                {
+                    textBox.IsReadOnly = true;
+                    textBox.Focusable = false;  // Disable focus to prevent selection
+                    textBox.Cursor = Cursors.Arrow;
+                    Keyboard.ClearFocus(); // Clear focus from textbox
+                    e.Handled = true;
+                }
+            };
 
+            textBox.LostFocus += (s, e) =>
+            {
+                textBox.IsReadOnly = true;
+                textBox.Focusable = false;  // Disable focus to prevent selection
+                textBox.Cursor = Cursors.Arrow;
 
+                // Clear selection when editing is done
+                if (_selectedElement == textBox)
+                {
+                    _selectedElement = null;
+                    HighlightSelectedElement(null);
+                }
+            };
+        }
+        private void MainWindow_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Delete && _selectedElement != null)
+            {
+                LabelCanvas.Children.Remove(_selectedElement);
+                _selectedElement = null;
+            }
+        }
 
+        // Highlight selected element
+        private void HighlightSelectedElement(UIElement? element)
+        {
+            // Clear all highlights
+            foreach (UIElement child in LabelCanvas.Children)
+            {
+                if (child is TextBox tb)
+                {
+                    tb.BorderBrush = null;
+                    tb.BorderThickness = new Thickness(0);
+                }
+            }
+
+            // Highlight selected element
+            if (element is TextBox selected)
+            {
+                selected.BorderBrush = Brushes.Blue;
+                selected.BorderThickness = new Thickness(2);
+            }
+        }
     }
 }
