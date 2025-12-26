@@ -68,6 +68,29 @@ namespace LabelDesigner.Views
             _labelHeightIn = heightInches;
 
             SetLabelSize(_labelWidthIn, _labelHeightIn);
+
+            // Ensure elements stay inside
+            ClampElementsToCanvas();
+        }
+
+        // Ensure elements stay within canvas bounds after resizing
+        private void ClampElementsToCanvas()
+        {
+            foreach (UIElement element in LabelCanvas.Children)
+            {
+                if (element is FrameworkElement fe)
+                {
+                    double left = Canvas.GetLeft(fe);
+                    double top = Canvas.GetTop(fe);
+
+                    // Clamp positions so element stays fully inside canvas
+                    left = Math.Max(0, Math.Min(left, LabelCanvas.Width - fe.ActualWidth));
+                    top = Math.Max(0, Math.Min(top, LabelCanvas.Height - fe.ActualHeight));
+
+                    Canvas.SetLeft(fe, left);
+                    Canvas.SetTop(fe, top);
+                }
+            }
         }
 
 
@@ -141,6 +164,8 @@ namespace LabelDesigner.Views
 
             LabelCanvas.Children.Add(textBlock);
         }
+
+
 
 
 
