@@ -20,7 +20,7 @@ namespace LabelPrinting.Infrastructure.Printers
             _port = port;
         }
 
-        public void Print(Label label)
+        public async void Print(Label label)
         {
             try
             {
@@ -28,13 +28,21 @@ namespace LabelPrinting.Infrastructure.Printers
                 using var stream = client.GetStream();
 
                 string zpl = BuildZpl(label);
+
+
                 var bytes = Encoding.ASCII.GetBytes(zpl);
+                await stream.WriteAsync(bytes, 0, bytes.Length);
+                await stream.FlushAsync();
 
                 stream.Write(bytes, 0, bytes.Length);
             }
             catch (SocketException ex)
             {
                 throw new Exception($"Cannot connect to Zebra printer at {_ip}:{_port}", ex);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error printing to Zebra printer: {ex.Message}", ex);
             }
         }
 
@@ -43,36 +51,69 @@ namespace LabelPrinting.Infrastructure.Printers
             var sb = new StringBuilder();
             sb.AppendLine("^XA"); // start label
 
-            // Set label width and length in dots
-            sb.AppendLine($"^PW{ConvertToDots(label.WidthInches)}");
-            sb.AppendLine($"^LL{ConvertToDots(label.HeightInches)}");
+            // Set label dimensions in dots
+            int widthDots = ConvertToDots(label.WidthInches * DesignerScale);
+            int heightDots = ConvertToDots(label.HeightInches * DesignerScale);
+
+            sb.AppendLine($"^PW{widthDots}");    // Print width
+            sb.AppendLine($"^LL{heightDots}");   // Label length
+
+            // Set print speed and darkness (optional)
+            sb.AppendLine("^PR4");  // Print speed (2-14, 4 is medium)
+            sb.AppendLine("^MD15"); // Media darkness (0-30, 15 is medium)
+
 
             // Loop through all label elements
             foreach (var serializableElement in label.Elements)
             {
                 var element = serializableElement.ToDomain();
-
-                if (element is LabelTextElement text)
-                {
-                    int x = ConvertToDots(text.X);
-                    int y = ConvertToDots(text.Y);
-                    int fontHeight = ConvertToDots(text.FontSize); // scale font size
-
-                    // ^ADN,fontHeight,width -> width=0 lets printer scale proportionally
-                    sb.AppendLine($"^FO{x},{y}^ADN,{fontHeight},0^FD{text.Text}^FS");
-                }
-
-                // TODO: add support for barcodes or images here
+                RenderElement(sb, element);
             }
 
             sb.AppendLine("^XZ"); // end label
+
             return sb.ToString();
+        }
+
+        private void RenderElement(StringBuilder sb, LabelElement element)
+        {
+            if (element is LabelTextElement textElement)
+            {
+                RenderTextElement(sb, textElement);
+            }
+            // Add more element types as needed
+        }
+
+        private void RenderTextElement(StringBuilder sb, LabelTextElement text)
+        {
+            int x = ConvertToDots(text.X);
+            int y = ConvertToDots(text.Y);
+            int fontHeight = ConvertToDots(text.FontSize);
+
+            // Use ^A command for font selection
+            // ^ADN = Font D (sans serif), Normal orientation
+            // You can change to ^A0N (font 0), ^AAN (font A), etc.
+            sb.AppendLine($"^FO{x},{y}");           // Field Origin
+            sb.AppendLine($"^ADN,{fontHeight},0");   // Font command
+            sb.AppendLine($"^FD{EscapeZplText(text.Text)}^FS"); // Field Data
         }
 
         private int ConvertToDots(double designerPixels)
         {
             // Convert from designer pixels to printer dots
             return (int)(designerPixels / DesignerScale * PrinterDpi);
+        }
+
+        private string EscapeZplText(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+                return string.Empty;
+
+            // Escape special ZPL characters
+            return text
+                .Replace("^", "^FH^5E") // Caret
+                .Replace("~", "^FH^7E") // Tilde
+                .Replace("\\", "^FH^5C"); // Backslash
         }
     }
 }
