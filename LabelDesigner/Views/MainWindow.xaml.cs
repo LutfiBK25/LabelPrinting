@@ -31,37 +31,44 @@ namespace LabelDesigner.Views
             }
         }
 
+        // Canvas Variables
         private int _dpi = 203;
 
-        private const int GridSize = 10;
+        // Dragging Variables
+        private Point _startPoint;
+        private bool _isDragging;
 
-        private void AddText_Click(object sender, RoutedEventArgs e)
+
+        // Set canvas size during initialization
+        private void SetLabelSize(double widthInches, double heightInches, int dpi)
         {
-            var element = new LabelTextElement
-            {
-                Text = "New Text",
-                X = 50,
-                Y = 50
-            };
+            _dpi = dpi;
 
-            var textBlock = new TextBlock
-            {
-                Text = element.Text,
-                FontSize = 24,
-                Background = Brushes.Transparent
-            };
+            double widthPx = widthInches * dpi;
+            double heightPx = heightInches * dpi;
 
-            Canvas.SetLeft(textBlock, element.X);
-            Canvas.SetTop(textBlock, element.Y);
+            LabelCanvas.Width = widthPx;
+            LabelCanvas.Height = heightPx;
 
-            MakeDraggable(textBlock);
+        }
 
-            LabelCanvas.Children.Add(textBlock);
+        // Set canvas size based on input width and height in inches
+        private void ApplySize_Click(object sender, RoutedEventArgs e)
+        {
+            if (!double.TryParse(WidthBox.Text, out double widthInches))
+                return;
+
+            if (!double.TryParse(HeightBox.Text, out double heightInches))
+                return;
+
+            double widthPx = widthInches * _dpi; // Convert inches to pixels
+            double heightPx = heightInches * _dpi;
+
+            LabelCanvas.Width = widthPx; // Set canvas size
+            LabelCanvas.Height = heightPx;
         }
 
 
-        private Point _startPoint;
-        private bool _isDragging;
 
         private void MakeDraggable(UIElement element)
         {
@@ -107,33 +114,34 @@ namespace LabelDesigner.Views
             };
         }
 
-        // Set canvas size based on input width and height in inches
-        private void ApplySize_Click(object sender, RoutedEventArgs e)
+
+        // Add Text Element
+        private void AddText_Click(object sender, RoutedEventArgs e)
         {
-            if (!double.TryParse(WidthBox.Text, out double widthInches))
-                return;
+            var element = new LabelTextElement
+            {
+                Text = "New Text",
+                X = 50,
+                Y = 50
+            };
 
-            if (!double.TryParse(HeightBox.Text, out double heightInches))
-                return;
+            var textBlock = new TextBlock
+            {
+                Text = element.Text,
+                FontSize = 24,
+                Background = Brushes.Transparent
+            };
 
-            double widthPx = widthInches * _dpi; // Convert inches to pixels
-            double heightPx = heightInches * _dpi;
+            Canvas.SetLeft(textBlock, element.X);
+            Canvas.SetTop(textBlock, element.Y);
 
-            LabelCanvas.Width = widthPx; // Set canvas size
-            LabelCanvas.Height = heightPx;
+            MakeDraggable(textBlock);
+
+            LabelCanvas.Children.Add(textBlock);
         }
 
-        // Set canvas size during initialization
-        private void SetLabelSize(double widthInches, double heightInches, int dpi)
-        {
-            _dpi = dpi;
 
-            double widthPx = widthInches * dpi;
-            double heightPx = heightInches * dpi;
 
-            LabelCanvas.Width = widthPx;
-            LabelCanvas.Height = heightPx;
 
-        }
     }
 }
