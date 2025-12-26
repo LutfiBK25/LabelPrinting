@@ -17,6 +17,9 @@ Here is a preview of how it works:
 - user can save or load (.lbl) files
 ![Preview of how it works](./images/README/label-designer-2.png)
 
+- New Design
+![Preview of how it works](./images/README/label-designer-3.png)
+
 ### API
 
 - there is two ways to print either by sending it to a zebra printer or pdf file

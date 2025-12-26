@@ -12,4 +12,11 @@
     <ProjectReference Include="..\LabelPrinting.Domain\LabelPrinting.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Fonts\" />
+    <Folder Include="Images\" />
+    <Folder Include="MVVM\Model\" />
+    <Folder Include="MVVM\ViewModel\" />
+  </ItemGroup>
+
 </Project>
