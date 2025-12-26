@@ -399,16 +399,19 @@ namespace LabelDesigner.Views
         // Load Design from JSON
         private void LoadDesign_Click(object sender, RoutedEventArgs e)
         {
+            // Open file dialog
             var openDialog = new OpenFileDialog
             {
                 Filter = "Label Design Files (*.lbl)|*.lbl|All Files (*.*)|*.*",
                 Title = "Load Label Design"
             };
 
+            // Show dialog
             if (openDialog.ShowDialog() == true)
             {
                 try
                 {
+                    // Read and deserialize JSON
                     string json = File.ReadAllText(openDialog.FileName);
                     var label = JsonSerializer.Deserialize<Label>(json);
 
@@ -525,7 +528,7 @@ namespace LabelDesigner.Views
                 // Store the mapping
                 _elementMapping[textBox] = textElement;
             }
-            // Add more element types here as needed (images, barcodes, etc.)
+            // ToDo: Add more element types here as needed (images, barcodes, etc.)
         }
     }
 }

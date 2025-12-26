@@ -22,14 +22,12 @@ public class LabelController : ControllerBase
     {
         try
         {
-            var label = new Label();
-            await _labelService.PrintLabelAsync(label, request.PrinterId);
+            await _labelService.PrintLabelAsync(request.LabelPath, request.PrinterId);
             return Ok("Label sent to printer");
         }
         catch (Exception ex)
         {
             return BadRequest(ex.Message);
         }
-
     }
 }

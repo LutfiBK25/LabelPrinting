@@ -1,5 +1,4 @@
 ﻿using LabelPrinting.Domain.Entities.Label.Elements;
-using System.Text.Json.Serialization;
 
 namespace LabelPrinting.Domain.Entities.Label;
 
@@ -26,10 +25,10 @@ public class Label
         public string? Text { get; set; }
         public double FontSize { get; set; }
 
-        // Future: Image-specific properties
+        // Future: Image-specific properties / Find Another Way like how does Bartender do it, can we serailize images?
         public string? ImagePath { get; set; }
 
-        // Convert from domain entity
+        // Convert from domain entity, for serialization (Saving)
         public static SerializableLabelElement FromDomain(LabelElement element)
         {
             var serializable = new SerializableLabelElement
@@ -52,7 +51,7 @@ public class Label
             return serializable;
         }
 
-        // Convert to domain entity
+        // Convert to domain entity, for deserialization (Loading)
         public LabelElement ToDomain()
         {
             switch (Type)

@@ -1,51 +1,80 @@
 ﻿using LabelPrinting.Domain.Entities.Label;
+using LabelPrinting.Domain.Entities.Label.Elements;
 using LabelPrinting.Domain.Interfaces;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
-using ZXing;
-using ZXing.OneD;
-using ZXing.Rendering;
+
 
 namespace LabelPrinting.Infrastructure.Printers
 {
     // PDF Label Configuration
     public class PdfLabelPrinter : ILabelPrinter
     {
+        private const float PointsPerInch = 72f; //(1 inch = 72 points)
+        private const float DesignerScale = 100f; // Same scale used in designer (100 pixels per inch)
         public void Print(Label label)
         {
             QuestPDF.Settings.License = LicenseType.Community;
 
             // Convert inches to points (1 inch = 72 points)
-            float width = 4 * 72;   // 4 inches
-            float height = 6 * 72;  // 6 inches
+            float widthPoints = (float)label.WidthInches * PointsPerInch;
+            float heightPoints = (float)label.HeightInches * PointsPerInch;
 
             var pdf = Document.Create(container =>
             {
                 container.Page(page =>
                 {
-                    page.Size(width, height);   // Custom size
-                    page.Margin(10);
-                    page.Content().Column(col =>
+                    page.Size(widthPoints, heightPoints);   // Custom size
+                    page.Margin(0); // No Margin
+                    page.Content().Layers(layers =>
                     {
-                        col.Item().Text(label.Name).FontSize(20).Bold().AlignCenter();
-                        col.Item().AlignCenter()
-                        .AlignMiddle()
-                        .Width(268)
-                        .Height(50)
-                        .Svg(size =>
+                        foreach (var serializableElement in label.Elements)
                         {
-                            var content = label.Name;
-                            var writer = new Code128Writer(); // correct format for long strings
-                            var eanCode = writer.encode(content, BarcodeFormat.CODE_128, (int)size.Width, (int)size.Height);
-                            var renderer = new SvgRenderer { FontName = "Lato", FontSize = 16 }; // FontSize : is for the barcode text
-                            return renderer.Render(eanCode, BarcodeFormat.CODE_128, content).Content;
-                        });
+                            var element = serializableElement.ToDomain();
+                            RenderElement(layers, element);
+                        }
                     });
                 });
             }).GeneratePdf();
 
-            File.WriteAllBytes($"{label.Name}.pdf", pdf);
+
+
+            // Save PDF to file
+            string fileName = SanitizeFileName(label.Name);
+            File.WriteAllBytes($"{fileName}.pdf", pdf);
+        }
+
+        private void RenderElement(LayersDescriptor layers, LabelElement element)
+        {
+            float x = ConvertToPoints(element.X);
+            float y = ConvertToPoints(element.Y);
+
+            if (element is LabelTextElement textElement)
+            {
+                layers.PrimaryLayer().TranslateX(x).TranslateY(y)
+                    .Text(textElement.Text)
+                    .FontSize((float)textElement.FontSize)
+                    .FontColor(Colors.Black);
+            }
+            // Add more element types here
+        }
+
+        // Convert designer pixels to PDF points
+        private float ConvertToPoints(double designerPixels)
+        {
+            // Designer uses 100 pixels per inch
+            // PDF uses 72 points per inch
+            return (float)(designerPixels / DesignerScale * PointsPerInch);
+        }
+
+
+        // File name sanitizer to remove invalid characters
+        private string SanitizeFileName(string fileName)
+        {
+            var invalidChars = Path.GetInvalidFileNameChars();
+            var sanitized = string.Join("_", fileName.Split(invalidChars, StringSplitOptions.RemoveEmptyEntries));
+            return string.IsNullOrWhiteSpace(sanitized) ? "Label" : sanitized;
         }
     }
 }
