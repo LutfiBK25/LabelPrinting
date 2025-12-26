@@ -60,6 +60,13 @@ namespace LabelDesigner.Views
             // Only deselect if clicking directly on canvas (not on a child element)
             if (e.Source == LabelCanvas)
             {
+                if (_selectedElement != null && _selectedElement is TextBox tb)
+                {
+                    tb.IsReadOnly = true;
+                    tb.Focusable = false;  // Disable focus to prevent selection
+                    tb.Cursor = Cursors.Arrow;
+                    Keyboard.ClearFocus(); // Clear focus from textbox
+                }
                 _selectedElement = null;
                 HighlightSelectedElement(null);
             }
