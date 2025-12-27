@@ -20,6 +20,8 @@ Here is a preview of how it works:
 - New Design
 ![Preview of how it works](./images/README/label-designer-3.png)
 
+- Issue To Fix
+![Preview of how it works](./images/README/Issue%20To%20Fix.png)
 ### API
 
 - there is two ways to print either by sending it to a zebra printer or pdf file
