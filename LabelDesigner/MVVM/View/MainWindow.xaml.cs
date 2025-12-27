@@ -17,8 +17,11 @@ namespace LabelDesigner.Views
     /// </summary>
     public partial class MainWindow : Window
     {
+        // You can define a scale factor for the designer view, e.g. 100 pixels per inch
+        private const double scale = 100;
+
         // Store the current label being edited
-        private Label _currentLabel;
+        private Label? _currentLabel;
 
         // Store domain entities alongside UI elements
         private Dictionary<UIElement, LabelElement> _elementMapping = new Dictionary<UIElement, LabelElement>();
@@ -94,9 +97,6 @@ namespace LabelDesigner.Views
         // Set canvas size during initialization
         private void SetLabelSize(double widthInches, double heightInches)
         {
-            // You can define a scale factor for the designer view, e.g. 100 pixels per inch
-            const double scale = 100;
-
             LabelCanvas.Width = widthInches * scale;
             LabelCanvas.Height = heightInches * scale;
         }
