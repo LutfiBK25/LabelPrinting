@@ -18,8 +18,8 @@ public class PdfLabelPrinter : ILabelPrinter
         QuestPDF.Settings.License = LicenseType.Community;
 
         // Convert inches to points (1 inch = 72 points)
-        float widthPoints = (float)label.WidthInches * PointsPerInch;
-        float heightPoints = (float)label.HeightInches * PointsPerInch;
+        float widthPoints = (float)label.LabelWidthInches * PointsPerInch;
+        float heightPoints = (float)label.LabelHeightInches * PointsPerInch;
 
         var pdf = Document.Create(container =>
         {

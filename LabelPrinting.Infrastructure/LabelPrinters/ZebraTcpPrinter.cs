@@ -58,8 +58,8 @@ namespace LabelPrinting.Infrastructure.Printers
             sb.AppendLine("^XA"); // start label
 
             // Set label dimensions in dots
-            int widthDots = ConvertToDots(label.WidthInches * DesignerScale);
-            int heightDots = ConvertToDots(label.HeightInches * DesignerScale);
+            int widthDots = ConvertToDots(label.LabelWidthInches * DesignerScale);
+            int heightDots = ConvertToDots(label.LabelHeightInches * DesignerScale);
 
             sb.AppendLine($"^PW{widthDots}");    // Print width
             sb.AppendLine($"^LL{heightDots}");   // Label length

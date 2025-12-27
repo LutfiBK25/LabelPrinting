@@ -2,6 +2,6 @@
 
 public class LabelTextElement : LabelElement
 {
-    public string Text { get; set; }
+    public string Text { get; set; } = string.Empty;
     public double FontSize { get; set; }
 }
