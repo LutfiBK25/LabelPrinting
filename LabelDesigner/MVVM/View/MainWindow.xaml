@@ -14,7 +14,7 @@
         WindowStartupLocation="CenterScreen">
     <Border Grid.ColumnSpan="2"
             Background="#252525"
-            CornerRadius="20,20,0,0"
+            CornerRadius="20,20,20,20"
             BorderBrush="#AA4472C4"
             BorderThickness="0,0,0,1">
         <Grid>
