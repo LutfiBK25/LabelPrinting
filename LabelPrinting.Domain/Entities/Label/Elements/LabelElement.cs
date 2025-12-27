@@ -7,4 +7,5 @@ public abstract class LabelElement
     public double Y { get; set; }
     public double ElementWidth { get; set; }
     public double ElementHeight { get; set; }
+
 }

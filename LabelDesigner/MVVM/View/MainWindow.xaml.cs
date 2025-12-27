@@ -1,4 +1,5 @@
-﻿using LabelPrinting.Domain.Entities.Label;
+﻿using LabelDesigner.Services;
+using LabelPrinting.Domain.Entities.Label;
 using LabelPrinting.Domain.Entities.Label.Elements;
 using Microsoft.Win32;
 using System.IO;
@@ -22,6 +23,8 @@ namespace LabelDesigner.Views
         // Store domain entities alongside UI elements
         private Dictionary<UIElement, LabelElement> _elementMapping = new Dictionary<UIElement, LabelElement>();
 
+        // Canvas element service for managing interactions
+        private CanvasElementService _canvasElementService;
 
         // Label Size Variables
         private double _labelWidthIn;
@@ -36,7 +39,12 @@ namespace LabelDesigner.Views
         {
             InitializeComponent();
 
+            // Initialize canvas element service
+            _canvasElementService = new CanvasElementService(LabelCanvas, OnElementSelectionChanged);
+
+            // Show New Label Dialog on Startup
             var dlg = new NewLabelWindow();
+            
             if (dlg.ShowDialog() == true)
             {
                 // Create new label - ADD THIS
@@ -44,9 +52,11 @@ namespace LabelDesigner.Views
                 {
                     Id = Guid.NewGuid(),
                     Name = "Untitled Label",
-                    WidthInches = dlg.LabelWidthIn,
-                    HeightInches = dlg.LabelHeightIn
+                    LabelWidthInches = dlg.LabelWidthIn,
+                    LabelHeightInches = dlg.LabelHeightIn
                 };
+
+                // Initialize label size variables for Label size in UI
                 // Get label size from dialog
                 _labelWidthIn = dlg.LabelWidthIn;
                 _labelHeightIn = dlg.LabelHeightIn;
@@ -54,6 +64,7 @@ namespace LabelDesigner.Views
                 WidthBox.Text = _labelWidthIn.ToString();
                 HeightBox.Text = _labelHeightIn.ToString();
 
+                // Set canvas size
                 SetLabelSize(dlg.LabelWidthIn, dlg.LabelHeightIn);
             }
             else
@@ -61,11 +72,23 @@ namespace LabelDesigner.Views
                 Close();
             }
 
-            // Make sure the window can capture key events
-            this.KeyDown += MainWindow_KeyDown;
-            this.Focusable = true;
-            this.Focus(); // set focus to the window
-            LabelCanvas.MouseLeftButtonDown += Canvas_MouseLeftButtonDown;
+            // Setup window for keyboard events
+            // so it can receive key events
+            Focusable = true;
+            // Set initial focus to the window
+            Focus();
+            // Subscribe to KeyDown event
+            KeyDown += MainWindow_KeyDown;
+            MouseLeftButtonDown += Canvas_MouseLeftButtonDown;
+        }
+
+        /// <summary>
+        /// Callback when element selection changes.
+        /// </summary>
+        private void OnElementSelectionChanged(UIElement? element)
+        {
+            _selectedElement = element;
+            _canvasElementService.HighlightSelectedElement(element);
         }
 
         // Set canvas size during initialization
@@ -78,47 +101,20 @@ namespace LabelDesigner.Views
             LabelCanvas.Height = heightInches * scale;
         }
 
-
-        // Set canvas size based on input width and height in inches
-        private void ApplySize_Click(object sender, RoutedEventArgs e)
+        // Canvas method:
+        private void MainWindow_KeyDown(object sender, KeyEventArgs e)
         {
-            if (!double.TryParse(WidthBox.Text, out double widthInches)) return;
-            if (!double.TryParse(HeightBox.Text, out double heightInches)) return;
-
-            _labelWidthIn = widthInches;
-            _labelHeightIn = heightInches;
-
-            SetLabelSize(_labelWidthIn, _labelHeightIn);
-
-            // Ensure elements stay inside
-            ClampElementsToCanvas();
-        }
-
-        // Ensure elements stay within canvas bounds after resizing
-        private void ClampElementsToCanvas()
-        {
-            foreach (UIElement element in LabelCanvas.Children)
+            if (e.Key == Key.Delete && _selectedElement != null)
             {
-                if (element is FrameworkElement fe)
+                LabelCanvas.Children.Remove(_selectedElement);
+                if (_elementMapping.TryGetValue(_selectedElement, out _))
                 {
-                    double left = Canvas.GetLeft(fe);
-                    double top = Canvas.GetTop(fe);
-
-                    // Handle NaN values
-                    if (double.IsNaN(left)) left = 0;
-                    if (double.IsNaN(top)) top = 0;
-
-                    // Clamp positions
-                    left = Math.Max(0, Math.Min(left, LabelCanvas.Width - fe.ActualWidth));
-                    top = Math.Max(0, Math.Min(top, LabelCanvas.Height - fe.ActualHeight));
-
-                    Canvas.SetLeft(fe, left);
-                    Canvas.SetTop(fe, top);
+                    _elementMapping.Remove(_selectedElement);
                 }
+                _selectedElement = null;
             }
         }
 
-        // Canvas method:
         private void Canvas_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             // Only deselect if clicking directly on canvas (not on a child element)
@@ -132,78 +128,25 @@ namespace LabelDesigner.Views
                     Keyboard.ClearFocus(); // Clear focus from textbox
                 }
                 _selectedElement = null;
-                HighlightSelectedElement(null);
+                _canvasElementService.HighlightSelectedElement(null);
             }
         }
 
-        private void MainWindow_KeyDown(object sender, KeyEventArgs e)
+        // Set canvas size based on input width and height in Label Size section
+        private void ApplySize_Click(object sender, RoutedEventArgs e)
         {
-            if (e.Key == Key.Delete && _selectedElement != null)
-            {
-                LabelCanvas.Children.Remove(_selectedElement);
-                _selectedElement = null;
-            }
+            if (!double.TryParse(WidthBox.Text, out double widthInches)) return;
+            if (!double.TryParse(HeightBox.Text, out double heightInches)) return;
+
+            _labelWidthIn = widthInches;
+            _labelHeightIn = heightInches;
+
+            SetLabelSize(_labelWidthIn, _labelHeightIn);
+
+            // Ensure elements stay inside
+            _canvasElementService.ClampElementsToCanvas();
         }
 
-        // Dragging Element
-        private void MakeDraggable(UIElement element)
-        {
-            Point startPoint = default;
-            element.MouseLeftButtonDown += (s, e) =>
-            {
-                // Don't start dragging if the textbox is in edit mode
-                if (element is TextBox tb && !tb.IsReadOnly)
-                    return;
-
-                startPoint = e.GetPosition(LabelCanvas);
-                element.CaptureMouse();
-                _selectedElement = element;
-                HighlightSelectedElement(element);
-                e.Handled = true;
-            };
-
-            element.MouseLeftButtonUp += (s, e) =>
-            {
-                element.ReleaseMouseCapture();
-                e.Handled = true;
-            };
-
-            element.MouseMove += (s, e) =>
-            {
-                // Check if THIS element has mouse capture (is being dragged)
-                if (!element.IsMouseCaptured) return;
-
-                // Don't drag if in edit mode
-                if (element is TextBox tb && !tb.IsReadOnly)
-                    return;
-
-                var position = e.GetPosition(LabelCanvas);
-                double offsetX = position.X - startPoint.X;
-                double offsetY = position.Y - startPoint.Y;
-
-                // Get current position, handling NaN
-                double currentLeft = Canvas.GetLeft(element);
-                double currentTop = Canvas.GetTop(element);
-
-                if (double.IsNaN(currentLeft)) currentLeft = 0;
-                if (double.IsNaN(currentTop)) currentTop = 0;
-
-                double newLeft = currentLeft + offsetX;
-                double newTop = currentTop + offsetY;
-
-                // Clamp inside canvas
-                if (element is FrameworkElement fe)
-                {
-                    newLeft = Math.Max(0, Math.Min(newLeft, LabelCanvas.Width - fe.ActualWidth));
-                    newTop = Math.Max(0, Math.Min(newTop, LabelCanvas.Height - fe.ActualHeight));
-                }
-
-                Canvas.SetLeft(element, newLeft);
-                Canvas.SetTop(element, newTop);
-                startPoint = position;
-                e.Handled = true;
-            };
-        }
         // Update AddText_Click to use the mapping
         private void AddText_Click(object sender, RoutedEventArgs e)
         {
@@ -214,8 +157,8 @@ namespace LabelDesigner.Views
                 X = 50,
                 Y = 50,
                 FontSize = 24,
-                Width = 0,
-                Height = 0
+                ElementWidth = 0,
+                ElementHeight = 0
             };
 
             var textBox = new TextBox
@@ -234,80 +177,45 @@ namespace LabelDesigner.Views
             Canvas.SetLeft(textBox, domainElement.X);
             Canvas.SetTop(textBox, domainElement.Y);
 
-            MakeDraggable(textBox);
-            MakeEditable(textBox);
+            _canvasElementService.MakeDraggable(textBox);
+            _canvasElementService.MakeTextBoxEditable(textBox, _ => _canvasElementService.HighlightSelectedElement(null));
             LabelCanvas.Children.Add(textBox);
 
             // Store the mapping
             _elementMapping[textBox] = domainElement;
         }
 
-        // Make TextBox Editable on Double Click
-        private void MakeEditable(TextBox textBox)
+        // Application Window Bar
+        // Draging using Border
+        private void Border_MouseDown(object sender, MouseEventArgs e)
         {
-            // Set initial cursor to arrow (for dragging)
-            textBox.Cursor = Cursors.Arrow;
-
-            textBox.MouseDoubleClick += (s, e) =>
+            if (e.LeftButton == MouseButtonState.Pressed)
             {
-                textBox.IsReadOnly = false;
-                textBox.Focusable = true;  // Enable focus for editing
-                textBox.Cursor = Cursors.IBeam;
-                textBox.Focus();
-                textBox.SelectAll();
-                e.Handled = true; // Prevent this from triggering other events
-            };
-
-            textBox.KeyDown += (s, e) =>
-            {
-                if (e.Key == Key.Enter && !textBox.IsReadOnly)
-                {
-                    textBox.IsReadOnly = true;
-                    textBox.Focusable = false;  // Disable focus to prevent selection
-                    textBox.Cursor = Cursors.Arrow;
-                    Keyboard.ClearFocus(); // Clear focus from textbox
-                    e.Handled = true;
-                }
-            };
-
-            textBox.LostFocus += (s, e) =>
-            {
-                textBox.IsReadOnly = true;
-                textBox.Focusable = false;  // Disable focus to prevent selection
-                textBox.Cursor = Cursors.Arrow;
-
-                // Clear selection when editing is done
-                if (_selectedElement == textBox)
-                {
-                    _selectedElement = null;
-                    HighlightSelectedElement(null);
-                }
-            };
-        }
-
-
-        // Highlight selected element
-        private void HighlightSelectedElement(UIElement? element)
-        {
-            // Clear all highlights
-            foreach (UIElement child in LabelCanvas.Children)
-            {
-                if (child is TextBox tb)
-                {
-                    tb.BorderBrush = null;
-                    tb.BorderThickness = new Thickness(0);
-                }
-            }
-
-            // Highlight selected element
-            if (element is TextBox selected)
-            {
-                selected.BorderBrush = Brushes.Blue;
-                selected.BorderThickness = new Thickness(2);
+                DragMove();
             }
         }
 
-        // Menu Methods
+        // Minimizing Application
+        private void Button_Minimize_Click (object sender, RoutedEventArgs e)
+        {
+            Application.Current.MainWindow.WindowState = WindowState.Minimized;
+        }
+
+        // Maximize and Normal Window State
+        private void Button_WindowState_Click(object sender, RoutedEventArgs e)
+        {
+            if (Application.Current.MainWindow.WindowState != WindowState.Maximized)
+                Application.Current.MainWindow.WindowState = WindowState.Maximized;
+            else
+                Application.Current.MainWindow.WindowState = WindowState.Normal;
+        }
+
+        private void Button_Close_Click(object sender, RoutedEventArgs e)
+        {
+            Application.Current.Shutdown();
+        }
+
+        // File Menu Methods
 
         // Save Design to JSON
         private void SaveDesign_Click(object sender, RoutedEventArgs e)
@@ -319,8 +227,8 @@ namespace LabelDesigner.Views
                 {
                     Id = Guid.NewGuid(),
                     Name = "Untitled Label",
-                    WidthInches = _labelWidthIn,
-                    HeightInches = _labelHeightIn
+                    LabelWidthInches = _labelWidthIn,
+                    LabelHeightInches = _labelHeightIn
                 };
             }
 
@@ -360,8 +268,8 @@ namespace LabelDesigner.Views
                             // Update size from UI
                             if (uiElement is FrameworkElement fe)
                             {
-                                domainElement.Width = fe.ActualWidth;
-                                domainElement.Height = fe.ActualHeight;
+                                domainElement.ElementWidth = fe.ActualWidth;
+                                domainElement.ElementHeight = fe.ActualHeight;
                             }
 
                             // Update text content if it's a TextBox
@@ -377,8 +285,8 @@ namespace LabelDesigner.Views
                     }
 
                     // Update label dimensions
-                    _currentLabel.WidthInches = _labelWidthIn;
-                    _currentLabel.HeightInches = _labelHeightIn;
+                    _currentLabel.LabelWidthInches = _labelWidthIn;
+                    _currentLabel.LabelHeightInches = _labelHeightIn;
 
                     // Serialize to JSON
                     var options = new JsonSerializerOptions { WriteIndented = true };
@@ -431,8 +339,8 @@ namespace LabelDesigner.Views
                     _currentLabel = label;
 
                     // Set label size
-                    _labelWidthIn = label.WidthInches;
-                    _labelHeightIn = label.HeightInches;
+                    _labelWidthIn = label.LabelWidthInches;
+                    _labelHeightIn = label.LabelHeightInches;
                     WidthBox.Text = _labelWidthIn.ToString();
                     HeightBox.Text = _labelHeightIn.ToString();
                     SetLabelSize(_labelWidthIn, _labelHeightIn);
@@ -456,6 +364,37 @@ namespace LabelDesigner.Views
                         MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
+        }
+
+        // Helper method to create UI element from domain entity (Loading Design)
+        private void CreateUIElement(LabelElement domainElement)
+        {
+            if (domainElement is LabelTextElement textElement)
+            {
+                var textBox = new TextBox
+                {
+                    Text = textElement.Text,
+                    FontSize = textElement.FontSize,
+                    Background = Brushes.Transparent,
+                    BorderThickness = new Thickness(0),
+                    IsReadOnly = true,
+                    IsHitTestVisible = true,
+                    Padding = new Thickness(2),
+                    Cursor = Cursors.Arrow,
+                    Focusable = false
+                };
+
+                Canvas.SetLeft(textBox, textElement.X);
+                Canvas.SetTop(textBox, textElement.Y);
+
+                _canvasElementService.MakeDraggable(textBox);
+                _canvasElementService.MakeTextBoxEditable(textBox, _ => _canvasElementService.HighlightSelectedElement(null));
+                LabelCanvas.Children.Add(textBox);
+
+                // Store the mapping
+                _elementMapping[textBox] = textElement;
+            }
+            // ToDo: Add more element types here as needed (images, barcodes, etc.)
         }
 
         // New Design (Clear Canvas)
@@ -482,8 +421,8 @@ namespace LabelDesigner.Views
                     {
                         Id = Guid.NewGuid(),
                         Name = "Untitled Label",
-                        WidthInches = dlg.LabelWidthIn,
-                        HeightInches = dlg.LabelHeightIn
+                        LabelWidthInches = dlg.LabelWidthIn,
+                        LabelHeightInches = dlg.LabelHeightIn
                     };
 
                     _labelWidthIn = dlg.LabelWidthIn;
@@ -499,66 +438,5 @@ namespace LabelDesigner.Views
             }
         }
 
-
-        // Helper method to create UI element from domain entity
-        private void CreateUIElement(LabelElement domainElement)
-        {
-            if (domainElement is LabelTextElement textElement)
-            {
-                var textBox = new TextBox
-                {
-                    Text = textElement.Text,
-                    FontSize = textElement.FontSize,
-                    Background = Brushes.Transparent,
-                    BorderThickness = new Thickness(0),
-                    IsReadOnly = true,
-                    IsHitTestVisible = true,
-                    Padding = new Thickness(2),
-                    Cursor = Cursors.Arrow,
-                    Focusable = false
-                };
-
-                Canvas.SetLeft(textBox, textElement.X);
-                Canvas.SetTop(textBox, textElement.Y);
-
-                MakeDraggable(textBox);
-                MakeEditable(textBox);
-                LabelCanvas.Children.Add(textBox);
-
-                // Store the mapping
-                _elementMapping[textBox] = textElement;
-            }
-            // ToDo: Add more element types here as needed (images, barcodes, etc.)
-        }
-
-        // Application Window Bar
-        // Draging using Border
-        private void Border_MouseDown(object sender, MouseEventArgs e)
-        {
-            if (e.LeftButton == MouseButtonState.Pressed)
-            {
-                DragMove();
-            }
-        }
-
-        // Minimizing Application
-        private void Button_Minimize_Click (object sender, RoutedEventArgs e)
-        {
-            Application.Current.MainWindow.WindowState = WindowState.Minimized;
-        }
-
-        // Maximize and Normal Window State
-        private void Button_WindowState_Click(object sender, RoutedEventArgs e)
-        {
-            if (Application.Current.MainWindow.WindowState != WindowState.Maximized)
-                Application.Current.MainWindow.WindowState = WindowState.Maximized;
-            else
-                Application.Current.MainWindow.WindowState = WindowState.Normal;
-        }
-
-        private void Button_Close_Click(object sender, RoutedEventArgs e)
-        {
-            Application.Current.Shutdown();
-        }
     }
 }
