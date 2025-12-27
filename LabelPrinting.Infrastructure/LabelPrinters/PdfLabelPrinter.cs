@@ -13,7 +13,7 @@ public class PdfLabelPrinter : ILabelPrinter
 {
     private const float PointsPerInch = 72f; //(1 inch = 72 points)
     private const float DesignerScale = 100f; // Same scale used in designer (100 pixels per inch)
-    public void Print(Label label)
+    public async Task Print(Label label)
     {
         QuestPDF.Settings.License = LicenseType.Community;
 

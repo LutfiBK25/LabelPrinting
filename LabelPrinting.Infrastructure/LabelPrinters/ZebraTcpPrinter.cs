@@ -22,7 +22,7 @@ namespace LabelPrinting.Infrastructure.Printers
 
         }
 
-        public async void Print(Label label)
+        public async Task Print(Label label)
         {
             try
             {
