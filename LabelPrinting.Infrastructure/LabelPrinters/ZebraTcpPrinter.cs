@@ -4,6 +4,7 @@ using System.Text;
 using LabelPrinting.Domain.Entities.Label;
 using LabelPrinting.Domain.Entities.Label.Elements;
 using LabelPrinting.Domain.Interfaces;
+using Microsoft.Extensions.Logging;
 
 namespace LabelPrinting.Infrastructure.Printers
 {
@@ -18,23 +19,28 @@ namespace LabelPrinting.Infrastructure.Printers
         {
             _ip = ip;
             _port = port;
+
         }
 
         public async void Print(Label label)
         {
             try
             {
-                using var client = new TcpClient(_ip, _port);
+                // Connect to the Zebra printer via TCP
+                using var client = new TcpClient();
+                await client.ConnectAsync(_ip, _port);
+
+                // Get the network stream for sending data
                 using var stream = client.GetStream();
 
+                // Build ZPL command string from the label
                 string zpl = BuildZpl(label);
-
-
                 var bytes = Encoding.ASCII.GetBytes(zpl);
-                await stream.WriteAsync(bytes, 0, bytes.Length);
-                await stream.FlushAsync();
 
-                stream.Write(bytes, 0, bytes.Length);
+                // Send ZPL commands to the printer
+                await stream.WriteAsync(bytes, 0, bytes.Length);
+                // Ensure all data is sent
+                await stream.FlushAsync();
             }
             catch (SocketException ex)
             {

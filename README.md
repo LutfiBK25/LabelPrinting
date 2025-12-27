@@ -178,3 +178,4 @@ The generated PDF is saved to the working directory using a sanitized file name 
 - hot keys functionality in the desiginer
 - deleting printers
 - updating printers
+- Before Printing Test printer is connected and active
