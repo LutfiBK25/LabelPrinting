@@ -530,5 +530,35 @@ namespace LabelDesigner.Views
             }
             // ToDo: Add more element types here as needed (images, barcodes, etc.)
         }
+
+        // Application Window Bar
+        // Draging using Border
+        private void Border_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (e.LeftButton == MouseButtonState.Pressed)
+            {
+                DragMove();
+            }
+        }
+
+        // Minimizing Application
+        private void Button_Minimize_Click (object sender, RoutedEventArgs e)
+        {
+            Application.Current.MainWindow.WindowState = WindowState.Minimized;
+        }
+
+        // Maximize and Normal Window State
+        private void Button_WindowState_Click(object sender, RoutedEventArgs e)
+        {
+            if (Application.Current.MainWindow.WindowState != WindowState.Maximized)
+                Application.Current.MainWindow.WindowState = WindowState.Maximized;
+            else
+                Application.Current.MainWindow.WindowState = WindowState.Normal;
+        }
+
+        private void Button_Close_Click(object sender, RoutedEventArgs e)
+        {
+            Application.Current.Shutdown();
+        }
     }
 }
