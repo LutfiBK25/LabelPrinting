@@ -12,7 +12,11 @@
         WindowStyle="None"
         ResizeMode="CanResize"
         WindowStartupLocation="CenterScreen">
-    <Border Background="#272537" CornerRadius="20">
+    <Border Grid.ColumnSpan="2"
+            Background="#252525"
+            CornerRadius="20,20,0,0"
+            BorderBrush="#AA4472C4"
+            BorderThickness="0,0,0,1">
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="200"></ColumnDefinition>
@@ -28,12 +32,38 @@
             <Border Grid.ColumnSpan="2"
                     Background="#252525"
                     CornerRadius="20,20,0,0"
-                    MouseDown="Border_MouseDown">
+                    BorderBrush="#AA4472C4"
+                    BorderThickness="0,0,0,1"
+                    MouseLeftButtonDown="Border_MouseDown">
                 <Grid HorizontalAlignment="Stretch">
                     <Label Content="Label Designer"
                            Foreground="Gray"
                            FontWeight="SemiBold"
                            Margin="10,0,0,0"/>
+                    <Menu Margin="120,0,0,0"
+                          Padding="0"
+                          Background="Transparent"
+                          BorderThickness="0"
+                          HorizontalAlignment="Left"
+                          VerticalAlignment="Center">
+
+                        <!-- MENU CONTENT -->
+                        <MenuItem Header="File"
+                                  Style="{StaticResource TopMenuItemStyle}">
+                            <MenuItem Header="New Design | Ctrl+N"
+                                      Style="{StaticResource SubMenuItemStyle}"
+                                      Click="NewDesign_Click"/>
+
+                            <MenuItem Header="Open Design | Ctrl+O"
+                                      Style="{StaticResource SubMenuItemStyle}"
+                                      Click="LoadDesign_Click"/>
+
+                            <MenuItem Header="Save Design | Ctrl+S"
+                                      Style="{StaticResource SubMenuItemStyle}"
+                                      Click="SaveDesign_Click"/>
+                        </MenuItem>
+
+                    </Menu>
                     <StackPanel HorizontalAlignment="Right"
                                 Orientation="Horizontal">
                         <Button Width="20"
@@ -105,7 +135,7 @@
                     Grid.Column="1"
 		            BorderThickness="2" 
                     Background="#1E1F2B"
-                    CornerRadius="0,0,20,0">
+                    CornerRadius="20,0,20,0">
                 <Viewbox Stretch="Uniform" OpacityMask="{DynamicResource {x:Static SystemColors.ActiveCaptionTextBrushKey}}">
                     <Canvas x:Name="LabelCanvas"
                             Margin="10,20,10,20"
