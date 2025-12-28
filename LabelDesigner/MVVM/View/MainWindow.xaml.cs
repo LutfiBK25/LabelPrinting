@@ -220,14 +220,19 @@ public partial class MainWindow : Window
             // Calculate scale to fit inside canvas
             double scaleX = canvasWidth / imageWidth * 0.95;
             double scaleY = canvasHeight / imageHeight * 0.95;
-            double scale = Math.Min(1.0, Math.Min(scaleX, scaleY)); // never upscale
+            double displayScale = Math.Min(1.0, Math.Min(scaleX, scaleY)); // never upscale
+
+            double displayWidth = imageWidth * displayScale;
+            double displayHeight = imageHeight * displayScale;
+
 
             var image = new Image
             {
                 Source = bitmap,
-                Width = imageWidth * scale,
-                Height = imageHeight * scale,
-                Stretch = Stretch.Uniform
+                Width = displayWidth,
+                Height = displayHeight,
+                Stretch = Stretch.Uniform,
+                IsHitTestVisible = true
             };
 
 
@@ -235,7 +240,8 @@ public partial class MainWindow : Window
             Canvas.SetTop(image, (canvasHeight - image.Height) / 2);
 
             // Convert image bytes to base64
-            string base64Image = Convert.ToBase64String(imageBytes);
+            byte[] resizedImageBytes = ResizeImageBytes(imageBytes, (int)displayWidth, (int)displayHeight);
+            string base64Image = Convert.ToBase64String(resizedImageBytes);
 
             // Create domain element with embedded base64 image
             var domainElement = new LabelImageElement
@@ -243,8 +249,8 @@ public partial class MainWindow : Window
                 Id = Guid.NewGuid(),
                 X = Canvas.GetLeft(image),
                 Y = Canvas.GetTop(image),
-                ElementWidth = image.ActualWidth,
-                ElementHeight = image.ActualHeight,
+                ElementWidth = displayWidth,
+                ElementHeight = displayHeight,
                 Base64Image = base64Image,
             };
 
@@ -260,6 +266,36 @@ public partial class MainWindow : Window
             MessageBoxButton.OK, MessageBoxImage.Error);
         }
         
+    }
+
+    /// <summary>
+    /// Resize image bytes to specified dimensions.
+    /// Returns PNG bytes of the resized image.
+    /// </summary>
+    private byte[] ResizeImageBytes(byte[] imageBytes, int targetWidth, int targetHeight)
+    {
+        using (var ms = new MemoryStream(imageBytes))
+        {
+            using (var originalBitmap = new System.Drawing.Bitmap(ms))
+            {
+                // Create resized bitmap
+                using (var resized = new System.Drawing.Bitmap(targetWidth, targetHeight))
+                {
+                    using (var g = System.Drawing.Graphics.FromImage(resized))
+                    {
+                        g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+                        g.DrawImage(originalBitmap, 0, 0, targetWidth, targetHeight);
+                    }
+
+                    // Save resized bitmap as PNG bytes
+                    using (var output = new MemoryStream())
+                    {
+                        resized.Save(output, System.Drawing.Imaging.ImageFormat.Png);
+                        return output.ToArray();
+                    }
+                }
+            }
+        }
     }
     #endregion
 

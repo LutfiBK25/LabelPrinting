@@ -154,6 +154,7 @@ namespace LabelPrinting.Infrastructure.Printers
 
         Bitmap ConvertToMonochrome(Bitmap source)
         {
+            Console.WriteLine($" Height:{source.Height}, Width: {source.Width}");
             var mono = new Bitmap(source.Width, source.Height, PixelFormat.Format1bppIndexed);
 
             var rect = new Rectangle(0, 0, source.Width, source.Height);
