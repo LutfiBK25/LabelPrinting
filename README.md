@@ -20,7 +20,7 @@ Here is a preview of how it works:
 - New Design
 ![Preview of how it works](./images/README/label-designer-3.png)
 
-- Issue To Fix
+- Issue To Fix (Zebra is Fixed, PDF needs works)
 ![Preview of how it works](./images/README/Issue%20To%20Fix.png)
 ### API
 
@@ -181,3 +181,5 @@ The generated PDF is saved to the working directory using a sanitized file name 
 - deleting printers
 - updating printers
 - Before Printing Test printer is connected and active
+- When File is edited by the designer it should make that file active or sth so its not editable
+-limit resizing label so you cant resize smaller than biggest image

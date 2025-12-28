@@ -25,6 +25,10 @@ public class Label
         public string? Text { get; set; }
         public double FontSize { get; set; }
 
+        // Image-specfic properties
+        public string? Base64Image { get; set; }
+
+
         // Convert from domain entity, for serialization (Saving)
         public static SerializableLabelElement FromDomain(LabelElement element)
         {
@@ -42,6 +46,11 @@ public class Label
                 serializable.Type = "Text";
                 serializable.Text = textElement.Text;
                 serializable.FontSize = textElement.FontSize;
+            }
+            else if (element is LabelImageElement imageElement)
+            {
+                serializable.Type = "Image";
+                serializable.Base64Image = imageElement.Base64Image;
             }
             // Add more types here as needed
 
@@ -64,6 +73,18 @@ public class Label
                         Text = Text ?? "Text",
                         FontSize = FontSize
                     };
+
+                case "Image":
+                    return new LabelImageElement
+                    {
+                        Id = Id,
+                        X = X,
+                        Y = Y,
+                        ElementWidth = ElementWidth,
+                        ElementHeight = ElementHeight,
+                        Base64Image = Base64Image,
+                    };
+
                 // Add more types here as needed
                 default:
                     throw new NotSupportedException($"Element type '{Type}' is not supported");

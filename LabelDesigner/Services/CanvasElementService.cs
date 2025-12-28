@@ -1,7 +1,9 @@
-﻿using System.Windows;
+﻿using System.IO;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 
 namespace LabelDesigner.Services;
 
@@ -210,6 +212,35 @@ public class CanvasElementService
         textBox.Focusable = false;  // Disable focus to prevent selection
         textBox.Cursor = Cursors.Arrow;
         Keyboard.ClearFocus(); // Clear focus from textbox
+    }
+    #endregion
+
+    #region Image
+    public string BitmapToBase64(BitmapImage bitmap)
+    {
+        var encoder = new PngBitmapEncoder(); // or JpegBitmapEncoder
+        encoder.Frames.Add(BitmapFrame.Create(bitmap));
+
+        using var ms = new MemoryStream();
+        encoder.Save(ms);
+
+        return Convert.ToBase64String(ms.ToArray());
+    }
+    public BitmapImage Base64ToBitmap(string base64)
+    {
+        byte[] bytes = Convert.FromBase64String(base64);
+
+        var bitmap = new BitmapImage();
+        using (var ms = new MemoryStream(bytes))
+        {
+            bitmap.BeginInit();
+            bitmap.CacheOption = BitmapCacheOption.OnLoad; // important
+            bitmap.StreamSource = ms;
+            bitmap.EndInit();
+            bitmap.Freeze(); // allow cross-thread usage
+        }
+
+        return bitmap;
     }
     #endregion
 }

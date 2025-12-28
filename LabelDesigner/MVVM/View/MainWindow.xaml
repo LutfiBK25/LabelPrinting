@@ -103,31 +103,41 @@
 
             <StackPanel Grid.Row="2" Margin="10,0,0,0">
                 <!-- Label Size -->
-                <TextBlock Text="Label Size" 
+                <StackPanel>
+                    <TextBlock Text="Label Size" 
                            FontWeight="Bold"
                            Foreground="White"/>
-                <TextBlock Text="Width (in):" 
+                    <TextBlock Text="Width (in):" 
                            Margin="10,0,10,0"
                            Foreground="White"/>
-                <TextBox x:Name="WidthBox" Text="4" 
+                    <TextBox x:Name="WidthBox" Text="4" 
                          Margin="10,0,10,5"/>
-                <TextBlock Text="Height (in):" 
+                    <TextBlock Text="Height (in):" 
                            Margin="10,0,10,0"
                            Foreground="White"/>
-                <TextBox x:Name="HeightBox" Text="4" 
+                    <TextBox x:Name="HeightBox" Text="4" 
                          Margin="10,0,10,10"/>
-                <Button Content="Set Label Size"
+                    <Button Content="Set Label Size"
                 Click="ApplySize_Click" Margin="10,0,10,10"/>
+                </StackPanel>
                 <!-- Label Toolbox -->
-                <TextBlock Text="Toolbox" FontWeight="Bold" 
+                <StackPanel>
+                    <TextBlock Text="Toolbox" FontWeight="Bold" 
                            Margin="0,0,0,10"
                            Foreground="White"/>
-                <Button Content="TextBox"
+                    <Button Content="TextBox"
                         Click="AddText_Click"
-                        Height="50"
+                        Height="25"
                         Foreground="White"
                         FontSize="14"
                         Style="{StaticResource MenuButtonTheme}"/>
+                    <Button Content="Image"
+                        Click="AddImage_Click"
+                        Height="25"
+                        Foreground="White"
+                        FontSize="14"
+                        Style="{StaticResource MenuButtonTheme}"/>
+                </StackPanel>
             </StackPanel>
 
             <!-- Label canvas -->
