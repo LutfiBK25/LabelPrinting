@@ -6,22 +6,13 @@ LabelPrinting is a small solution providing a WPF label designer and a web API f
 
 Here is a preview of how it works:
 
+
+
+
 ### Designer
-
-- user run the designer and choose the diementions
-![Preview of how it works](./images/README/new-label.png)
-
-- user builds the label in the designer
-![Preview of how it works](./images/README/label-designer-1.png)
-
-- user can save or load (.lbl) files
-![Preview of how it works](./images/README/label-designer-2.png)
-
-- New Design
+- Zebra Print vs Template
 ![Preview of how it works](./images/README/label-designer-3.png)
 
-- Issue To Fix (Zebra is Fixed, PDF needs works)
-![Preview of how it works](./images/README/Issue%20To%20Fix.png)
 ### API
 
 - there is two ways to print either by sending it to a zebra printer or pdf file
@@ -183,3 +174,21 @@ The generated PDF is saved to the working directory using a sanitized file name 
 - Before Printing Test printer is connected and active
 - When File is edited by the designer it should make that file active or sth so its not editable
 -limit resizing label so you cant resize smaller than biggest image
+
+
+### Designer Dev Stages
+
+- user builds the label in the designer
+![Preview of how it works](./images/README/label-designer-1.png)
+
+- user can save or load (.lbl) files
+![Preview of how it works](./images/README/label-designer-2.png)
+
+- New Design
+![Preview of how it works](./images/README/label-designer-4.png)
+
+- Added Top Window Bar
+![Preview of how it works](./images/README/label-designer-5.png)
+
+- Added Picture and General Element Properties
+![Preview of how it works](./images/README/label-designer-6.png)
