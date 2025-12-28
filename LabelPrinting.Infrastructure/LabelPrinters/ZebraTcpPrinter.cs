@@ -19,7 +19,6 @@ namespace LabelPrinting.Infrastructure.Printers
         {
             _ip = ip;
             _port = port;
-
         }
 
         public async Task Print(Label label)
@@ -60,12 +59,11 @@ namespace LabelPrinting.Infrastructure.Printers
             // Set label dimensions in dots
             int widthDots = ConvertToDots(label.LabelWidthInches * DesignerScale);
             int heightDots = ConvertToDots(label.LabelHeightInches * DesignerScale);
-
             sb.AppendLine($"^PW{widthDots}");    // Print width
             sb.AppendLine($"^LL{heightDots}");   // Label length
 
             // Set print speed and darkness (optional)
-            sb.AppendLine("^PR4");  // Print speed (2-14, 4 is medium)
+            sb.AppendLine("^PR2");  // Print speed (2-14, 4 is medium)
             sb.AppendLine("^MD15"); // Media darkness (0-30, 15 is medium)
 
 
@@ -99,9 +97,10 @@ namespace LabelPrinting.Infrastructure.Printers
             // Use ^A command for font selection
             // ^ADN = Font D (sans serif), Normal orientation
             // You can change to ^A0N (font 0), ^AAN (font A), etc.
+            sb.AppendLine($"^CF0,{fontHeight}");
             sb.AppendLine($"^FO{x},{y}");           // Field Origin
-            sb.AppendLine($"^ADN,{fontHeight},0");   // Font command
             sb.AppendLine($"^FD{EscapeZplText(text.Text)}^FS"); // Field Data
+            sb.AppendLine();
         }
 
         private int ConvertToDots(double designerPixels)
