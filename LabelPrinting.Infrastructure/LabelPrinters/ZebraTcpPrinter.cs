@@ -138,11 +138,18 @@ namespace LabelPrinting.Infrastructure.Printers
             sb.AppendLine($"^FO{x},{y}");
             if (string.IsNullOrEmpty(imageElement.Base64Image)) return;
             var bitmapImage = Base64ToBitmap(imageElement.Base64Image);
-            using var mono = ConvertToMonochrome(bitmapImage);
 
+            // ← RESCALE HERE using ConvertToDots
+            int targetWidth = ConvertToDots(imageElement.ElementWidth);
+            int targetHeight = ConvertToDots(imageElement.ElementHeight);
+            using var resized = ResizeImage(bitmapImage, targetWidth, targetHeight);
+
+            // Preparing the image
+            using var mono = ConvertToMonochrome(resized);
+            
             sb.Append(BuildZplImage(mono));
         }
-
+        
         public static Bitmap Base64ToBitmap(string base64)
         {
             byte[] bytes = Convert.FromBase64String(base64);
@@ -152,9 +159,45 @@ namespace LabelPrinting.Infrastructure.Printers
             return new Bitmap(temp);
         }
 
+        /// <summary>
+        /// Resize a bitmap to specified dimensions using high-quality resampling.
+        /// </summary>
+        /// <param name="source">Original bitmap to resize</param>
+        /// <param name="targetWidth">Target width in pixels</param>
+        /// <param name="targetHeight">Target height in pixels</param>
+        /// <returns>Resized bitmap</returns>
+        private Bitmap ResizeImage(Bitmap source, int targetWidth, int targetHeight)
+        {
+            // Validate dimensions
+            if (targetWidth <= 0 || targetHeight <= 0)
+            {
+                return new Bitmap(source); // Return copy if invalid dimensions
+            }
+
+            var resized = new Bitmap(targetWidth, targetHeight);
+
+            using (var g = Graphics.FromImage(resized))
+            {
+                // High-quality resampling settings
+                g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+                g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
+                g.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighQuality;
+
+                // Draw the source bitmap scaled to the target size
+                g.DrawImage(source, 0, 0, targetWidth, targetHeight);
+            }
+
+            // Dispose the original bitmap after resizing
+            source.Dispose();
+
+            return resized;
+        }
+
+        // Takes a color or grayscale bitmap image
+        // Converts it to 1-bit monochrome (Format1bppIndexed) - only pure black (0) or pure white (1)
         Bitmap ConvertToMonochrome(Bitmap source)
         {
-            Console.WriteLine($" Height:{source.Height}, Width: {source.Width}");
+            Console.WriteLine($" Height:{ConvertToDots(source.Height)}, Width: {ConvertToDots(source.Width)}");
             var mono = new Bitmap(source.Width, source.Height, PixelFormat.Format1bppIndexed);
 
             var rect = new Rectangle(0, 0, source.Width, source.Height);
@@ -197,6 +240,18 @@ namespace LabelPrinting.Infrastructure.Printers
             return mono;
         }
 
+        string BuildZplImage(Bitmap bitmap)
+        {
+            int bytesPerRow = (bitmap.Width + 7) / 8;
+            int totalBytes = bytesPerRow * bitmap.Height;
+
+            string hex = BitmapToZplHex(bitmap);
+
+            return $"""
+            ^GFA,{totalBytes},{totalBytes},{bytesPerRow},{hex}
+            """;
+        }
+
         string BitmapToZplHex(Bitmap bitmap)
         {
             var bytesPerRow = (bitmap.Width + 7) / 8;
@@ -230,17 +285,6 @@ namespace LabelPrinting.Infrastructure.Printers
             return hexBuilder.ToString();
         }
 
-        string BuildZplImage(Bitmap bitmap)
-        {
-            int bytesPerRow = (bitmap.Width + 7) / 8;
-            int totalBytes = bytesPerRow * bitmap.Height;
-
-            string hex = BitmapToZplHex(bitmap);
-
-            return $"""
-            ^GFA,{totalBytes},{totalBytes},{bytesPerRow},{hex}
-            """;
-        }
         #endregion
     }
 }
