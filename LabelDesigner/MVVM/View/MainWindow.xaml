@@ -99,7 +99,61 @@
                     
                 </Grid>
             </Border>
+            <Border Grid.Row="1"
+                    Grid.ColumnSpan="2"
+                    BorderBrush="#AA4472C4"
+                    Background="#1E1F2B"
+                    BorderThickness="0,1,0,1">
+                    <!-- Element Properties -->
+                <StackPanel x:Name="PropertiesPanel" Orientation="Horizontal" IsEnabled="False">
+                    <TextBlock Text="Element Properties:" 
+                                       FontWeight="Bold" 
+                                       Foreground="White" 
+                                       Margin="0,0,20,0"
+                                       VerticalAlignment="Center"/>
 
+                    <!-- X Position -->
+                    <StackPanel Margin="0,0,15,0" Width="70">
+                        <TextBlock Text="X (px):" Foreground="White"
+                                   FontSize="11"/>
+                        <TextBox x:Name="PropX" 
+                 Text="0" 
+                 Margin="0,3,0,0"
+                 TextChanged="PropertyTextBox_TextChanged"
+                 PreviewTextInput="PropertyTextBox_PreviewTextInput"/>
+                    </StackPanel>
+
+                    <!-- Y Position -->
+                    <StackPanel Margin="0,0,15,0" Width="70">
+                        <TextBlock Text="Y (px):" Foreground="White" FontSize="11"/>
+                        <TextBox x:Name="PropY" 
+                 Text="0" 
+                 Margin="0,3,0,0"
+                 TextChanged="PropertyTextBox_TextChanged"
+                 PreviewTextInput="PropertyTextBox_PreviewTextInput"/>
+                    </StackPanel>
+
+                    <!-- Width -->
+                    <StackPanel Margin="0,0,15,0" Width="70">
+                        <TextBlock Text="Width (px):" Foreground="White" FontSize="11"/>
+                        <TextBox x:Name="PropWidth" 
+                 Text="0" 
+                 Margin="0,3,0,0"
+                 TextChanged="PropertyTextBox_TextChanged"
+                 PreviewTextInput="PropertyTextBox_PreviewTextInput"/>
+                    </StackPanel>
+
+                    <!-- Height -->
+                    <StackPanel Margin="0,0,15,0" Width="70">
+                        <TextBlock Text="Height (px):" Foreground="White" FontSize="11"/>
+                        <TextBox x:Name="PropHeight" 
+                 Text="0" 
+                 Margin="0,3,0,0"
+                 TextChanged="PropertyTextBox_TextChanged"
+                 PreviewTextInput="PropertyTextBox_PreviewTextInput"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
 
             <StackPanel Grid.Row="2" Margin="10,0,0,0">
                 <!-- Label Size -->
@@ -111,12 +165,14 @@
                            Margin="10,0,10,0"
                            Foreground="White"/>
                     <TextBox x:Name="WidthBox" Text="4" 
-                         Margin="10,0,10,5"/>
+                             Margin="10,0,10,5"
+                             PreviewTextInput="PropertyTextBox_PreviewTextInput"/>
                     <TextBlock Text="Height (in):" 
-                           Margin="10,0,10,0"
-                           Foreground="White"/>
+                               Margin="10,0,10,0"
+                               Foreground="White"/>
                     <TextBox x:Name="HeightBox" Text="4" 
-                         Margin="10,0,10,10"/>
+                            Margin="10,0,10,10"
+                            PreviewTextInput="PropertyTextBox_PreviewTextInput"/>
                     <Button Content="Set Label Size"
                 Click="ApplySize_Click" Margin="10,0,10,10"/>
                 </StackPanel>

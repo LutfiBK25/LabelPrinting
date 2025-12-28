@@ -37,6 +37,7 @@ public partial class MainWindow : Window
     // Selected Element
     private UIElement? _selectedElement;
 
+    private bool _isUpdatingProperties = false; // Flag to prevent circular updates
 
 
     public MainWindow()
@@ -93,6 +94,10 @@ public partial class MainWindow : Window
     {
         _selectedElement = element;
         _canvasElementService.HighlightSelectedElement(element);
+
+
+        // Update properties panel
+        UpdatePropertiesPanel(element);
     }
 
     // Set canvas size during initialization
@@ -576,5 +581,100 @@ public partial class MainWindow : Window
         }
     }
 
+    #endregion
+
+    #region Element Properties Bar
+    /// <summary>
+    /// Update the properties panel with selected element's current values.
+    /// </summary>
+    private void UpdatePropertiesPanel(UIElement? element)
+    {
+        _isUpdatingProperties = true;
+
+        if (element == null)
+        {
+            // Clear properties panel when nothing is selected
+            PropX.Text = "0";
+            PropY.Text = "0";
+            PropWidth.Text = "0";
+            PropHeight.Text = "0";
+            PropertiesPanel.IsEnabled = false;
+        }
+        else if (_elementMapping.TryGetValue(element, out var domainElement))
+        {
+            // Populate properties from domain element
+            PropertiesPanel.IsEnabled = true;
+            PropX.Text = domainElement.X.ToString("F0");
+            PropY.Text = domainElement.Y.ToString("F0");
+            PropWidth.Text = domainElement.ElementWidth.ToString("F0");
+            PropHeight.Text = domainElement.ElementHeight.ToString("F0");
+        }
+
+        _isUpdatingProperties = false;
+    }
+
+    /// <summary>
+    /// Handle property text changes with real-time updates.
+    /// Only applies changes if the value is valid (number >= 0).
+    /// </summary>
+    private void PropertyTextBox_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        if (_isUpdatingProperties || _selectedElement == null)
+            return;
+
+        if (!_elementMapping.TryGetValue(_selectedElement, out var domainElement))
+            return;
+
+        var textBox = sender as TextBox;
+        if (textBox == null || string.IsNullOrEmpty(textBox.Text))
+            return;
+
+        // Only process if the text is a valid number
+        if (!double.TryParse(textBox.Text, out double value))
+            return;
+
+        // Validate: position can be 0 or positive, size must be positive
+        bool isSize = textBox == PropWidth || textBox == PropHeight;
+        if (isSize && value <= 0)
+            return; // Don't apply invalid sizes
+
+        if (value < 0)
+            return; // Don't apply negative positions
+
+        // Apply the change to the canvas element
+        if (textBox == PropX)
+        {
+            Canvas.SetLeft(_selectedElement, value);
+            domainElement.X = value;
+        }
+        else if (textBox == PropY)
+        {
+            Canvas.SetTop(_selectedElement, value);
+            domainElement.Y = value;
+        }
+        else if (textBox == PropWidth && _selectedElement is FrameworkElement fe1)
+        {
+            fe1.Width = value;
+            domainElement.ElementWidth = value;
+        }
+        else if (textBox == PropHeight && _selectedElement is FrameworkElement fe2)
+        {
+            fe2.Height = value;
+            domainElement.ElementHeight = value;
+        }
+    }
+
+    /// <summary>
+    /// Allow only numbers and decimal points in property textboxes.
+    /// Prevents invalid input before it's typed.
+    /// </summary>
+    private void PropertyTextBox_PreviewTextInput(object sender, System.Windows.Input.TextCompositionEventArgs e)
+    {
+        // Allow numbers (0-9), decimal point (.), and minus sign (-)
+        if (!char.IsDigit(e.Text, 0) && e.Text != "." && e.Text != "-")
+        {
+            e.Handled = true;
+        }
+    }
     #endregion
 }
