@@ -8,12 +8,12 @@ namespace LabelPrinting.Infrastructure.Factory
     // Used factory so fresh instance per request
     public class LabelPrinterFactory : ILabelPrinterFactory
     {
-        public ILabelPrinter Create(Printer config)
+        public ILabelPrinter Create(Printer printer)
         {
-            return config.Type.ToLowerInvariant() switch
+            return printer.Type.ToLowerInvariant() switch
             {
                 "pdf" => new PdfLabelPrinter(),
-                "zebra" => new ZebraTcpPrinter(config.IP, config.Port),
+                "zebra" => new ZebraTcpPrinter(printer.IP, printer.Port),
                 _ => throw new Exception("Unsupported printer type")
             };
         }
