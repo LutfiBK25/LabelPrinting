@@ -19,7 +19,7 @@ namespace LabelDesigner.Views;
 /// </summary>
 public partial class MainWindow : Window
 {
-    // You can define a scale factor for the designer view, e.g. 100 pixels per inch
+    // 100 pixels per inch
     private const double scale = 100;
 
     // Store the current label being edited
@@ -39,9 +39,6 @@ public partial class MainWindow : Window
 
     // Selected Element
     private UIElement? _selectedElement;
-
-    private bool _isUpdatingProperties = false; // Flag to prevent circular updates
-
 
 
     public MainWindow()
