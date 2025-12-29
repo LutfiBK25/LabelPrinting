@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
 using System.Windows.Media;
@@ -36,6 +37,12 @@ public class ResizeAdorner : Adorner
         // We go small as long as we stop at zero or the program crash
         element.Height = element.Height - e.VerticalChange < 0 ? 0 : element.Height - e.VerticalChange;
         element.Width = element.Width - e.HorizontalChange < 0 ? 0 : element.Width - e.HorizontalChange;
+
+        double left = Canvas.GetLeft(element);
+        double top = Canvas.GetTop(element);
+
+        Canvas.SetLeft(element, left + e.HorizontalChange);
+        Canvas.SetTop(element, top + e.VerticalChange);
     }
 
     private void Thumb2_DragDelta(object sender, DragDeltaEventArgs e)
@@ -45,6 +52,7 @@ public class ResizeAdorner : Adorner
         // We go small as long as we stop at zero or the program crash
         element.Height = element.Height + e.VerticalChange < 0 ? 0 : element.Height + e.VerticalChange;
         element.Width = element.Width + e.HorizontalChange < 0 ? 0 : element.Width + e.HorizontalChange;
+
     }
 
 
