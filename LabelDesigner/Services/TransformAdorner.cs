@@ -4,6 +4,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Shapes;
 
 namespace LabelDesigner.Services;
 public enum ResizeDirection
@@ -13,7 +14,7 @@ public enum ResizeDirection
     BottomLeft,Bottom, BottomRight,
     Left
 }
-public class ResizeAdorner : Adorner
+public class TransformAdorner : Adorner
 {
     private const double HANDLE_SIZE = 10;
     private const double MIN_SIZE = 20;
@@ -26,7 +27,10 @@ public class ResizeAdorner : Adorner
     private double _aspectRatio;
     private RotateTransform _rotateTransform;
 
-    public ResizeAdorner(UIElement adorned) : base(adorned)
+    // Box around object
+    private Rectangle _rectangle;
+
+    public TransformAdorner(UIElement adorned) : base(adorned)
     {
         _visuals = new VisualCollection(this);
 
@@ -52,6 +56,10 @@ public class ResizeAdorner : Adorner
         _rotateThumb = CreateThumb(Cursors.Hand);
         _rotateThumb.DragDelta += Rotate; // Subscribe
         _visuals.Add(_rotateThumb);
+
+        // Create Box around object
+        _rectangle = new Rectangle() { Stroke = Brushes.Coral, StrokeThickness = 2 , StrokeDashArray = {3,2} };
+        _visuals.Add(_rectangle);
     }
 
     private Thumb CreateThumb(Cursor cursor) => new Thumb
@@ -74,8 +82,8 @@ public class ResizeAdorner : Adorner
         double dx = e.HorizontalChange;
         double dy = e.VerticalChange;
 
-        double newWidth = el.Width;
-        double newHeight = el.Height;
+        double newWidth = el.ActualWidth;
+        double newHeight = el.ActualHeight;
 
         double left = Canvas.GetLeft(el);
         double top = Canvas.GetTop(el);
@@ -143,16 +151,19 @@ public class ResizeAdorner : Adorner
         double h = el.ActualHeight;
         double hs = HANDLE_SIZE / 2;
 
-        Arrange(ResizeDirection.TopLeft, 0, 0);
-        Arrange(ResizeDirection.Top, w / 2, 0);
-        Arrange(ResizeDirection.TopRight, w, 0);
-        Arrange(ResizeDirection.Right, w, h / 2);
-        Arrange(ResizeDirection.BottomRight, w, h);
-        Arrange(ResizeDirection.Bottom, w / 2, h);
-        Arrange(ResizeDirection.BottomLeft, 0, h);
-        Arrange(ResizeDirection.Left, 0, h / 2);
+        Arrange(ResizeDirection.TopLeft, -5, -5);
+        Arrange(ResizeDirection.Top, w / 2, -5);
+        Arrange(ResizeDirection.TopRight, w + 5, -5);
+        Arrange(ResizeDirection.Right, w + 5, h / 2);
+        Arrange(ResizeDirection.BottomRight, w + 5, h + 5);
+        Arrange(ResizeDirection.Bottom, w / 2, h + 5);
+        Arrange(ResizeDirection.BottomLeft, -5, h + 5);
+        Arrange(ResizeDirection.Left, - 5, h / 2);
 
         _rotateThumb.Arrange(new Rect(w / 2 - hs, -30, HANDLE_SIZE, HANDLE_SIZE));
+
+        // Object Box
+        _rectangle.Arrange(new Rect(-2.5, -2.5, w + 2.5,h + 2.5));
 
         return finalSize;
     }
@@ -165,71 +176,4 @@ public class ResizeAdorner : Adorner
 
     protected override int VisualChildrenCount => _visuals.Count;
     protected override Visual GetVisualChild(int index) => _visuals[index];
-
-    //public ResizeAdorner(UIElement adornedElement) : base(adornedElement)
-    //{
-    //    // Implment Rendering for Adorner
-    //    _visuals = new VisualCollection(this);
-
-    //    // Creating the thumbs
-    //    _thumb1 = new Thumb() { Background = Brushes.Coral, Height = 10, Width = 10 };
-    //    _thumb2 = new Thumb() { Background = Brushes.Coral, Height = 10, Width = 10 };
-
-    //    //Subscribe to event class
-    //    _thumb1.DragDelta += Thumb1_DragDelta;
-    //    _thumb2.DragDelta += Thumb2_DragDelta;
-
-
-    //    // Adding them to the adorner collection
-    //    _visuals.Add(_thumb1);
-    //    _visuals.Add(_thumb2);
-
-    //}
-
-
-    //private void Thumb1_DragDelta(object sender, DragDeltaEventArgs e)
-    //{
-    //    // we are casting to a framework to access the properties
-    //    var element = (FrameworkElement)AdornedElement;
-    //    // We go small as long as we stop at zero or the program crash
-    //    element.Height = element.Height - e.VerticalChange < 0 ? 0 : element.Height - e.VerticalChange;
-    //    element.Width = element.Width - e.HorizontalChange < 0 ? 0 : element.Width - e.HorizontalChange;
-
-    //    double left = Canvas.GetLeft(element);
-    //    double top = Canvas.GetTop(element);
-
-    //    Canvas.SetLeft(element, left + e.HorizontalChange);
-    //    Canvas.SetTop(element, top + e.VerticalChange);
-    //}
-
-    //private void Thumb2_DragDelta(object sender, DragDeltaEventArgs e)
-    //{
-    //    // we are casting to a framework to access the properties
-    //    var element = (FrameworkElement)AdornedElement;
-    //    // We go small as long as we stop at zero or the program crash
-    //    element.Height = element.Height + e.VerticalChange < 0 ? 0 : element.Height + e.VerticalChange;
-    //    element.Width = element.Width + e.HorizontalChange < 0 ? 0 : element.Width + e.HorizontalChange;
-
-    //}
-
-
-    //// This method gets called when the adorner is rendered to the screen
-    //protected override Visual GetVisualChild(int index)
-    //{
-    //    return _visuals[index];
-    //}
-
-    //// Return the number of the visuals
-    //protected override int VisualChildrenCount => _visuals.Count;
-
-    ////Arrange the visuals
-    //protected override Size ArrangeOverride(Size finalSize)
-    //{
-    //    // Arrange it relative to the UI Element
-    //    _thumb1.Arrange(new Rect(0, 0, 10, 10));
-    //    _thumb2.Arrange(new Rect(AdornedElement.DesiredSize.Width,AdornedElement.DesiredSize.Height, 10, 10));
-
-
-    //    return base.ArrangeOverride(finalSize);
-    //}
 }

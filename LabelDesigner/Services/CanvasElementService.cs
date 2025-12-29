@@ -156,6 +156,7 @@ public class CanvasElementService
     }
 
 
+
     #region Text Box
     /// <summary>
     /// Make a TextBox editable on double-click and handle focus/edit state.
