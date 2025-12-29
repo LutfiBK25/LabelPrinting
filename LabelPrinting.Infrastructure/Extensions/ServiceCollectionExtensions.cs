@@ -7,18 +7,17 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace LabelPrinting.Infrastructure.Extensions
+namespace LabelPrinting.Infrastructure.Extensions;
+
+// To extend from Infrastructure to API
+public static class ServiceCollectionExtensions
 {
-    // To extend from Infrastructure to API
-    public static class ServiceCollectionExtensions
+    public static void AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
-        public static void AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
-        {
-            var connectionString = configuration.GetConnectionString("PrintersDB");
-            services.AddDbContext<PrinterDBContext>(options => options.UseSqlServer(connectionString));
-            
-            services.AddSingleton<ILabelPrinterFactory, LabelPrinterFactory>();
-            services.AddScoped<IPrinterRepo, PrinterRepo>();
-        }
+        var connectionString = configuration.GetConnectionString("PrintersDB");
+        services.AddDbContext<PrinterDBContext>(options => options.UseSqlServer(connectionString));
+        
+        services.AddSingleton<ILabelPrinterFactory, LabelPrinterFactory>();
+        services.AddScoped<IPrinterRepo, PrinterRepo>();
     }
 }

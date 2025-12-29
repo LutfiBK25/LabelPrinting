@@ -1,10 +1,9 @@
 ﻿using LabelPrinting.Domain.Entities.Printer;
 using LabelPrinting.Domain.Interfaces;
 
-namespace LabelPrinting.Application.Printers.Interfaces
+namespace LabelPrinting.Application.Printers.Interfaces;
+
+public interface ILabelPrinterFactory
 {
-    public interface ILabelPrinterFactory
-    {
-        ILabelPrinter Create(Printer printerConfig);
-    }
+    ILabelPrinter Create(Printer printerConfig);
 }

@@ -5,7 +5,7 @@ POST http://localhost:5000/api/label/print
 Content-Type: application/json
 
 {
-    "PrinterId": "9b57cdf2-9636-4625-cb4f-08de43810839",
+    "PrinterId": "147aa68d-b3cc-4167-e0ff-08de43c35cfb",
     "LabelPath": "C:\\Users\\lutfi\\OneDrive\\Desktop\\test-123.lbl"
 }
 

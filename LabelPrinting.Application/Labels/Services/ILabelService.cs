@@ -1,9 +1,6 @@
-﻿using LabelPrinting.Domain.Entities.Label;
+﻿namespace LabelPrinting.Application.Labels.Services;
 
-namespace LabelPrinting.Application.Labels.Services
+public interface ILabelService
 {
-    public interface ILabelService
-    {
-        Task PrintLabelAsync(string labelPath, Guid printerId);
-    }
+    Task PrintLabelAsync(string labelPath, Guid printerId);
 }

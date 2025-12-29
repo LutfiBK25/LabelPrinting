@@ -2,23 +2,22 @@
 using Microsoft.EntityFrameworkCore;
 
 
-namespace LabelPrinting.Infrastructure.Presistence
+namespace LabelPrinting.Infrastructure.Presistence;
+
+internal class PrinterDBContext : DbContext
 {
-    internal class PrinterDBContext : DbContext
+    public PrinterDBContext(DbContextOptions<PrinterDBContext> options)
+        : base(options)
     {
-        public PrinterDBContext(DbContextOptions<PrinterDBContext> options)
-            : base(options)
-        {
-        }
+    }
 
-        internal DbSet<Printer> Printer { get; set; }
+    internal DbSet<Printer> Printer { get; set; }
 
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            modelBuilder.Entity<Printer>()
-                .HasKey(p => p.PrinterId);
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Printer>()
+            .HasKey(p => p.PrinterId);
 
-            base.OnModelCreating(modelBuilder);
-        }
+        base.OnModelCreating(modelBuilder);
     }
 }

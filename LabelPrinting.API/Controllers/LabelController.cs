@@ -1,7 +1,5 @@
 ﻿using LabelPrinting.Application.Labels.Dtos;
 using LabelPrinting.Application.Labels.Services;
-using LabelPrinting.Domain.Entities;
-using LabelPrinting.Domain.Entities.Label;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LabelPrinting.API.Controllers;
