@@ -6,6 +6,7 @@ using System.IO;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -92,9 +93,35 @@ public partial class MainWindow : Window
     /// </summary>
     private void OnElementSelectionChanged(UIElement? element)
     {
+        // Remove adorners from previously selected element
+        if (_selectedElement != null)
+        {
+            var oldAdornerLayer = AdornerLayer.GetAdornerLayer(_selectedElement);
+            if (oldAdornerLayer != null)
+            {
+                var adorners = oldAdornerLayer.GetAdorners(_selectedElement);
+                if (adorners != null)
+                {
+                    foreach (var adorner in adorners.OfType<ResizeAdorner>())
+                    {
+                        oldAdornerLayer.Remove(adorner);
+                    }
+                }
+            }
+        }
+
         _selectedElement = element;
         _canvasElementService.HighlightSelectedElement(element);
 
+        // Add adorner to newly selected element
+        if (element != null)
+        {
+            var adornerLayer = AdornerLayer.GetAdornerLayer(element);
+            if (adornerLayer != null)
+            {
+                adornerLayer.Add(new ResizeAdorner(element));
+            }
+        }
 
         // Update properties panel
         UpdatePropertiesPanel(element);

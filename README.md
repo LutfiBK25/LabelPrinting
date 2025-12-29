@@ -192,3 +192,6 @@ The generated PDF is saved to the working directory using a sanitized file name 
 
 - Added Picture and General Element Properties
 ![Preview of how it works](./images/README/label-designer-6.png)
+
+- Drag to Resize When Selected
+![Preview of how it works](./images/README/label-designer-7.png)
