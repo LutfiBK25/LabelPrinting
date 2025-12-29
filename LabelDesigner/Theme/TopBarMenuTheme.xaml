@@ -14,25 +14,25 @@
 
                             <!-- HEADER -->
                             <Border x:Name="HeaderBorder"
-                                Background="{TemplateBinding Background}"
-                                Padding="{TemplateBinding Padding}">
-                                <ContentPresenter
-                                ContentSource="Header"
-                                VerticalAlignment="Center"
-                                RecognizesAccessKey="True"/>
+                                    Background="{TemplateBinding Background}"
+                                    Padding="{TemplateBinding Padding}">
+                                    <ContentPresenter
+                                    ContentSource="Header"
+                                    VerticalAlignment="Center"
+                                    RecognizesAccessKey="True"/>
                             </Border>
 
                             <!-- SUBMENU POPUP -->
                             <Popup x:Name="Popup"
-                               Placement="Bottom"
-                               IsOpen="{TemplateBinding IsSubmenuOpen}"
-                               AllowsTransparency="True"
-                               Focusable="False">
+                                   Placement="Bottom"
+                                   IsOpen="{TemplateBinding IsSubmenuOpen}"
+                                   AllowsTransparency="True"
+                                   Focusable="False">
 
                                 <Border Background="#252525"
-                                    BorderThickness="1"
-                                    CornerRadius="6"
-                                    Padding="4">
+                                        BorderThickness="1"
+                                        CornerRadius="6"
+                                        Padding="4">
 
                                     <!-- THIS IS THE FIX -->
                                     <ItemsPresenter/>
@@ -45,14 +45,14 @@
 
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="HeaderBorder"
-            Property="Background"
-            Value="#333"/>
+                                        Property="Background"
+                                        Value="#333"/>
                             </Trigger>
 
                             <Trigger Property="IsSubmenuOpen" Value="True">
                                 <Setter TargetName="HeaderBorder"
-            Property="Background"
-            Value="#333"/>
+                                        Property="Background"
+                                        Value="#333"/>
                             </Trigger>
 
                         </ControlTemplate.Triggers>
@@ -73,16 +73,15 @@
                     <Border x:Name="ItemBorder"
                             Background="{TemplateBinding Background}"
                             Padding="{TemplateBinding Padding}">
-                        <ContentPresenter
-                            ContentSource="Header"
-                            RecognizesAccessKey="True"/>
+                        <ContentPresenter ContentSource="Header"
+                                          RecognizesAccessKey="True"/>
                     </Border>
 
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="ItemBorder"
-            Property="Background"
-            Value="#333"/>
+                                    Property="Background"
+                                    Value="#333"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
