@@ -11,7 +11,7 @@ Here is a preview of how it works:
 
 ### Designer
 - Zebra Print vs Template
-![Preview of how it works](./images/README/label-designer-3.png)
+![Preview of how it works](./images/README/label-designer-9.png)
 
 ### API
 
