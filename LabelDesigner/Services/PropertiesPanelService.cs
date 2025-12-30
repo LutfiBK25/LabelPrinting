@@ -37,14 +37,19 @@ public class PropertiesPanelService
         {
             Clear();
         }
-        else
+        else if (element is FrameworkElement fe)
         {
             _panel.IsEnabled = true;
-            _x.Text = Canvas.GetLeft(element).ToString("F0");
-            _y.Text = Canvas.GetTop(element).ToString("F0");
-            _width.Text = domain.ElementWidth.ToString("F0");
-            _height.Text = domain.ElementHeight.ToString("F0");
+            _x.Text = Canvas.GetLeft(fe).ToString("F0");
+            _y.Text = Canvas.GetTop(fe).ToString("F0");
+            _width.Text = fe.ActualWidth.ToString("F0");
+            _height.Text = fe.ActualHeight.ToString("F0");
+
+            // Keep domain in sync
+            domain.ElementWidth = fe.ActualWidth;
+            domain.ElementHeight = fe.ActualHeight;
         }
+
 
         _isUpdating = false;
     }

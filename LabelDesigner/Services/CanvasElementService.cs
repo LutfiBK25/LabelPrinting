@@ -3,7 +3,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
 namespace LabelDesigner.Services;
@@ -17,13 +16,15 @@ public class CanvasElementService
     private readonly Canvas _labelCanvas;
     private readonly Action<UIElement> _onSelectionChanged;
     private readonly Action<UIElement>? _onElementMoved;
+    private readonly Action<UIElement>? _onElementSizeChanged;
     private Point _dragStartPoint = default;
 
-    public CanvasElementService(Canvas labelCanvas, Action<UIElement> onSelectionChanaged, Action<UIElement>? onElementMoved)
+    public CanvasElementService(Canvas labelCanvas, Action<UIElement> onSelectionChanaged, Action<UIElement>? onElementMoved, Action<UIElement>? onElementSizeChanged)
     {
         _labelCanvas = labelCanvas;
         _onSelectionChanged = onSelectionChanaged;
         _onElementMoved = onElementMoved;
+        _onElementSizeChanged = onElementSizeChanged;
     }
 
     /// <summary>
@@ -62,7 +63,7 @@ public class CanvasElementService
         var adornerLayer = AdornerLayer.GetAdornerLayer(element);
         if (adornerLayer != null)
         {
-            adornerLayer.Add(new TransformAdorner(element));
+            adornerLayer.Add(new TransformAdorner(element, _onElementSizeChanged));
         }
     }
 

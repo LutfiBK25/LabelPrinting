@@ -20,21 +20,20 @@ public partial class MainWindow : Window
 {
     // 100 pixels per inch
     private const double scale = 100;
+    // Label Size Variables
+    private double _labelWidthIn;
+    private double _labelHeightIn;
 
-    // Store the current label being edited
-    private Label? _currentLabel;
+    private Label _currentLabel;
+    private readonly Dictionary<UIElement, LabelElement> _elementMapping = new();
 
-    // Store domain entities alongside UI elements
-    private Dictionary<UIElement, LabelElement> _elementMapping = new Dictionary<UIElement, LabelElement>();
-
+    // File Service
+    private readonly LabelFileService _fileService;
     // Canvas element service for managing interactions
     private readonly CanvasElementService _canvasElementService;
     // Manages Properties Panel
     private PropertiesPanelService _propertiesPanelService;
 
-    // Label Size Variables
-    private double _labelWidthIn;
-    private double _labelHeightIn;
 
     // Selected Element
     private UIElement? _selectedElement;
@@ -43,9 +42,9 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-
-        // Initialize canvas element service
-        _canvasElementService = new CanvasElementService(LabelCanvas, OnElementSelectionChanged, OnElementMoved);
+        // Label File Service
+        _fileService = new LabelFileService(LabelCanvas, _elementMapping);        // Initialize canvas element service
+        _canvasElementService = new CanvasElementService(LabelCanvas, OnElementSelectionChanged, OnElementMoved, OnElementSizeChange);
 
         // Initialize Properties Panel Service
         _propertiesPanelService = new PropertiesPanelService(
@@ -106,6 +105,20 @@ public partial class MainWindow : Window
         {
             domain.X = Canvas.GetLeft(element);
             domain.Y = Canvas.GetTop(element);
+
+            _propertiesPanelService.Update(element, domain);
+        }
+    }
+
+    private void OnElementSizeChange(UIElement element)
+    {
+        if (_selectedElement != element)
+            return;
+
+        if (_elementMapping.TryGetValue(element, out var domain))
+        {
+            domain.ElementWidth = Canvas.GetLeft(element);
+            domain.ElementHeight = Canvas.GetTop(element);
 
             _propertiesPanelService.Update(element, domain);
         }
@@ -355,191 +368,37 @@ public partial class MainWindow : Window
     #endregion
 
     #region Application Window Bar
-    // Draging using Border
-    private void Border_MouseDown(object sender, MouseEventArgs e)
-    {
-        if (e.LeftButton == MouseButtonState.Pressed)
-        {
-            DragMove();
-        }
-    }
-
-    // Minimizing Application
-    private void Button_Minimize_Click (object sender, RoutedEventArgs e)
-    {
-        Application.Current.MainWindow.WindowState = WindowState.Minimized;
-    }
-
-    // Maximize and Normal Window State
-    private void Button_WindowState_Click(object sender, RoutedEventArgs e)
-    {
-        if (Application.Current.MainWindow.WindowState != WindowState.Maximized)
-            Application.Current.MainWindow.WindowState = WindowState.Maximized;
-        else
-            Application.Current.MainWindow.WindowState = WindowState.Normal;
-    }
-
-    private void Button_Close_Click(object sender, RoutedEventArgs e)
-    {
-        Application.Current.Shutdown();
-    }
-
-    // File Menu Methods
-
-    // Save Design to JSON
     private void SaveDesign_Click(object sender, RoutedEventArgs e)
     {
-        // Safety check
-        if (_currentLabel == null)
-        {
-            _currentLabel = new Label
-            {
-                Id = Guid.NewGuid(),
-                Name = "Untitled Label",
-                LabelWidthInches = _labelWidthIn,
-                LabelHeightInches = _labelHeightIn
-            };
-        }
+        if (_currentLabel == null) return;
 
-        var saveDialog = new SaveFileDialog
-        {
-            Filter = "Label Design Files (*.lbl)|*.lbl|All Files (*.*)|*.*",
-            DefaultExt = ".lbl",
-            Title = "Save Label Design",
-            FileName = _currentLabel.Name
-        };
-
-        if (saveDialog.ShowDialog() == true)
-        {
-            try
-            {
-                // Update label name from filename
-                _currentLabel.Name = Path.GetFileNameWithoutExtension(saveDialog.FileName);
-
-                // Clear existing elements
-                _currentLabel.Elements.Clear();
-
-                // Collect all elements from canvas
-                foreach (UIElement uiElement in LabelCanvas.Children)
-                {
-                    if (_elementMapping.TryGetValue(uiElement, out var domainElement))
-                    {
-                        // Update position from UI
-                        double x = Canvas.GetLeft(uiElement);
-                        double y = Canvas.GetTop(uiElement);
-
-                        if (double.IsNaN(x)) x = 0;
-                        if (double.IsNaN(y)) y = 0;
-
-                        domainElement.X = x;
-                        domainElement.Y = y;
-
-                        // Update size from UI
-                        if (uiElement is FrameworkElement fe)
-                        {
-                            domainElement.ElementWidth = fe.ActualWidth;
-                            domainElement.ElementHeight = fe.ActualHeight;
-                        }
-
-                        // Update text content if it's a TextBox
-                        if (uiElement is TextBox textBox && domainElement is LabelTextElement textElement)
-                        {
-                            textElement.Text = textBox.Text;
-                            textElement.FontSize = textBox.FontSize;
-                        }
-                        else if (uiElement is Image image && domainElement is LabelImageElement imageElement)
-                        {
-                            imageElement.ElementWidth = image.ActualWidth;
-                            imageElement.ElementWidth = image.ActualWidth;
-                        }
-
-                        // Convert to serializable format
-                        _currentLabel.Elements.Add(SerializableLabelElement.FromDomain(domainElement));
-                    }
-                }
-
-                // Update label dimensions
-                _currentLabel.LabelWidthInches = _labelWidthIn;
-                _currentLabel.LabelHeightInches = _labelHeightIn;
-
-                // Serialize to JSON
-                var options = new JsonSerializerOptions { WriteIndented = true };
-                string json = JsonSerializer.Serialize(_currentLabel, options);
-                File.WriteAllText(saveDialog.FileName, json);
-
-                MessageBox.Show("Design saved successfully!", "Success",
-                    MessageBoxButton.OK, MessageBoxImage.Information);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error saving design: {ex.Message}", "Error",
-                    MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
+        _fileService.Save(_currentLabel, _labelWidthIn, _labelHeightIn);
+        Title = $"Label Designer - {_currentLabel.Name}";
     }
 
-    // Load Design from JSON
     private void LoadDesign_Click(object sender, RoutedEventArgs e)
     {
-        // Open file dialog
-        var openDialog = new OpenFileDialog
-        {
-            Filter = "Label Design Files (*.lbl)|*.lbl|All Files (*.*)|*.*",
-            Title = "Load Label Design"
-        };
+        var label = _fileService.Load();
+        if (label == null) return;
 
-        // Show dialog
-        if (openDialog.ShowDialog() != true)return;
-        
-        try
-        {
-            // Read and deserialize JSON
-            string json = File.ReadAllText(openDialog.FileName);
-            var label = JsonSerializer.Deserialize<Label>(json);
+        _currentLabel = label;
 
-            if (label == null)
-            {
-                MessageBox.Show("Invalid design file.", "Error",
-                    MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
-            }
+        LabelCanvas.Children.Clear();
+        _elementMapping.Clear();
+        ClearSelection();
 
-            // Clear current canvas
-            LabelCanvas.Children.Clear();
-            _elementMapping.Clear();
-            _selectedElement = null;
+        _labelWidthIn = label.LabelWidthInches;
+        _labelHeightIn = label.LabelHeightInches;
 
-            // Set current label
-            _currentLabel = label;
+        WidthBox.Text = _labelWidthIn.ToString();
+        HeightBox.Text = _labelHeightIn.ToString();
+        SetLabelSize(_labelWidthIn, _labelHeightIn);
 
-            // Set label size
-            _labelWidthIn = label.LabelWidthInches;
-            _labelHeightIn = label.LabelHeightInches;
-            WidthBox.Text = _labelWidthIn.ToString();
-            HeightBox.Text = _labelHeightIn.ToString();
-            SetLabelSize(_labelWidthIn, _labelHeightIn);
+        foreach (var serial in label.Elements)
+            CreateUIElement(serial.ToDomain());
 
-            // Update window title with label name
-            this.Title = $"Label Designer - {label.Name}";
-
-            // Recreate elements
-            foreach (var serializableElement in label.Elements)
-            {
-                var domainElement = serializableElement.ToDomain();
-                CreateUIElement(domainElement);
-            }
-
-            MessageBox.Show("Design loaded successfully!", "Success",
-                MessageBoxButton.OK, MessageBoxImage.Information);
-        }
-        catch (Exception ex)
-        {
-            MessageBox.Show($"Error loading design: {ex.Message}", "Error",
-                MessageBoxButton.OK, MessageBoxImage.Error);
-        }
-        
+        Title = $"Label Designer - {label.Name}";
     }
-
     // Helper method to create UI element from domain entity (Loading Design)
     private void CreateUIElement(LabelElement domainElement)
     {
@@ -566,9 +425,10 @@ public partial class MainWindow : Window
             LabelCanvas.Children.Add(textBox);
 
 
-        } else if(domainElement is LabelImageElement imageElement)
+        }
+        else if (domainElement is LabelImageElement imageElement)
         {
-            if(string.IsNullOrEmpty(imageElement.Base64Image)) return;
+            if (string.IsNullOrEmpty(imageElement.Base64Image)) return;
             var image = new Image
             {
                 Source = _canvasElementService.Base64ToBitmap(imageElement.Base64Image),
@@ -630,6 +490,35 @@ public partial class MainWindow : Window
             }
         }
     }
+    // Draging using Border
+    private void Border_MouseDown(object sender, MouseEventArgs e)
+    {
+        if (e.LeftButton == MouseButtonState.Pressed)
+        {
+            DragMove();
+        }
+    }
+
+    // Minimizing Application
+    private void Button_Minimize_Click (object sender, RoutedEventArgs e)
+    {
+        Application.Current.MainWindow.WindowState = WindowState.Minimized;
+    }
+
+    // Maximize and Normal Window State
+    private void Button_WindowState_Click(object sender, RoutedEventArgs e)
+    {
+        if (Application.Current.MainWindow.WindowState != WindowState.Maximized)
+            Application.Current.MainWindow.WindowState = WindowState.Maximized;
+        else
+            Application.Current.MainWindow.WindowState = WindowState.Normal;
+    }
+
+    private void Button_Close_Click(object sender, RoutedEventArgs e)
+    {
+        Application.Current.Shutdown();
+    }
+
 
     #endregion
 

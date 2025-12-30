@@ -12,7 +12,8 @@ public enum ResizeDirection
     TopLeft, Top, TopRight,
     Right,
     BottomLeft,Bottom, BottomRight,
-    Left
+    Left,
+    Rotate
 }
 public class TransformAdorner : Adorner
 {
@@ -21,16 +22,16 @@ public class TransformAdorner : Adorner
 
     private readonly VisualCollection _visuals; // Store a punch of visual objects that are rendered to the screen
     private readonly Dictionary<ResizeDirection, Thumb> _resizeThumbs = new();
-    //private Thumb _thumb1, _thumb2; // to utilize draging
     private readonly Thumb _rotateThumb;
 
-    private double _aspectRatio;
-    private RotateTransform _rotateTransform;
+    private readonly double _aspectRatio;
+    private readonly RotateTransform _rotateTransform;
 
     // Box around object
-    private Rectangle _rectangle;
+    private readonly Rectangle _rectangle;
+    private readonly Action<UIElement>? _onElementSizeChanged;
 
-    public TransformAdorner(UIElement adorned) : base(adorned)
+    public TransformAdorner(UIElement adorned, Action<UIElement>? onElementSizeChanged) : base(adorned)
     {
         _visuals = new VisualCollection(this);
 
@@ -46,29 +47,51 @@ public class TransformAdorner : Adorner
         // Create Resize Handles
         foreach(ResizeDirection dir in Enum.GetValues(typeof(ResizeDirection)))
         {
-            var thumb = CreateThumb(Cursors.SizeAll);
+            var thumb = CreateThumb(dir);
             thumb.DragDelta += (s, e) => Resize(dir, e); //Subscribe
             _resizeThumbs[dir] = thumb;
             _visuals.Add(thumb);
         }
 
         // Create Rotate Handle
-        _rotateThumb = CreateThumb(Cursors.Hand);
+        _rotateThumb = CreateThumb(ResizeDirection.Rotate);
         _rotateThumb.DragDelta += Rotate; // Subscribe
         _visuals.Add(_rotateThumb);
 
-        // Create Box around object
-        _rectangle = new Rectangle() { Stroke = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#4D4D4D")), StrokeThickness = 2 , StrokeDashArray = {3,2} };
+        // Create Box around object with rotation
+        _rectangle = new Rectangle()
+        {
+            Stroke = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#4D4D4D")),
+            StrokeThickness = 2,
+            StrokeDashArray = { 3, 2 },
+            RenderTransformOrigin = new Point(0.5, 0.5),
+            RenderTransform = _rotateTransform  // Share the same transform!
+        };
         _visuals.Add(_rectangle);
+
+        _onElementSizeChanged = onElementSizeChanged;
     }
 
-    private Thumb CreateThumb(Cursor cursor) => new Thumb
+    private Thumb CreateThumb(ResizeDirection dir)
     {
-        Width = HANDLE_SIZE,
-        Height = HANDLE_SIZE,
-        Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#4D4D4D")),
-        Cursor = cursor,
-    };
+        var cursor = dir switch
+        {
+            ResizeDirection.TopLeft or ResizeDirection.BottomRight => Cursors.SizeNWSE,
+            ResizeDirection.Top or ResizeDirection.Bottom => Cursors.SizeNS,
+            ResizeDirection.TopRight or ResizeDirection.BottomLeft => Cursors.SizeNESW,
+            ResizeDirection.Left or ResizeDirection.Right => Cursors.SizeWE,
+            ResizeDirection.Rotate => Cursors.Hand,
+            _ => Cursors.SizeAll
+        };
+
+        return new Thumb
+        {
+            Width = HANDLE_SIZE,
+            Height = HANDLE_SIZE,
+            Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#4D4D4D")),
+            Cursor = cursor,
+        };
+    }
 
     // =========================
     // RESIZE LOGIC
@@ -122,6 +145,7 @@ public class TransformAdorner : Adorner
         el.Height = newHeight;
         Canvas.SetLeft(el, left);
         Canvas.SetTop(el, top);
+        _onElementSizeChanged?.Invoke(el);
     }
 
     // =========================
@@ -139,8 +163,8 @@ public class TransformAdorner : Adorner
 
         double angle = Math.Atan2(mouse.Y - center.Y, mouse.X - center.X) * 180 / Math.PI;
         _rotateTransform.Angle = angle + 90;
+        _onElementSizeChanged?.Invoke(el);
     }
-
     // =========================
     // ADORNER LAYOUT
     // =========================
