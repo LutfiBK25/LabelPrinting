@@ -58,7 +58,7 @@ public class TransformAdorner : Adorner
         _visuals.Add(_rotateThumb);
 
         // Create Box around object
-        _rectangle = new Rectangle() { Stroke = Brushes.Coral, StrokeThickness = 2 , StrokeDashArray = {3,2} };
+        _rectangle = new Rectangle() { Stroke = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#4D4D4D")), StrokeThickness = 2 , StrokeDashArray = {3,2} };
         _visuals.Add(_rectangle);
     }
 
@@ -66,7 +66,7 @@ public class TransformAdorner : Adorner
     {
         Width = HANDLE_SIZE,
         Height = HANDLE_SIZE,
-        Background = Brushes.Coral,
+        Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#4D4D4D")),
         Cursor = cursor,
     };
 
@@ -163,7 +163,7 @@ public class TransformAdorner : Adorner
         _rotateThumb.Arrange(new Rect(w / 2 - hs, -30, HANDLE_SIZE, HANDLE_SIZE));
 
         // Object Box
-        _rectangle.Arrange(new Rect(-2.5, -2.5, w + 2.5,h + 2.5));
+        _rectangle.Arrange(new Rect(-2.5, -2.5, w + 5,h + 5));
 
         return finalSize;
     }

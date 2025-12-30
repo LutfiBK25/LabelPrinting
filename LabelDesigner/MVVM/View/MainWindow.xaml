@@ -13,10 +13,10 @@
         ResizeMode="CanResize"
         WindowStartupLocation="CenterScreen">
     <Border Grid.ColumnSpan="2"
-            Background="#252525"
-            CornerRadius="20,20,20,20"
-            BorderBrush="#AA4472C4"
-            BorderThickness="0,0,0,1">
+            Background="#121212"
+            BorderBrush="#252526"
+            BorderThickness="2"
+            CornerRadius="5">
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="200"></ColumnDefinition>
@@ -30,10 +30,10 @@
             </Grid.RowDefinitions>
 
             <Border Grid.ColumnSpan="2"
-                    Background="#252525"
+                    Background="#121212"
                     CornerRadius="20,20,0,0"
-                    BorderBrush="#AA4472C4"
-                    BorderThickness="0,0,0,1"
+                    BorderBrush="#4D4D4D"
+                    BorderThickness="0,0,0,2"
                     MouseLeftButtonDown="Border_MouseDown">
                 <Grid HorizontalAlignment="Stretch">
                     <Label Content="Label Designer"
@@ -66,142 +66,169 @@
                     </Menu>
                     <StackPanel HorizontalAlignment="Right"
                                 Orientation="Horizontal">
-                        <Button Width="20"
-                                Height="20"
+                        <Button Style="{StaticResource AppControlsButtonStyle}"
+                                Margin="0,0,10,0"
                                 Content="—"
-                                Background="Transparent"
-                                BorderThickness="0"
-                                Foreground="Gray"
-                                FontWeight="Bold"
-                                FontSize="12"
                                 Click="Button_Minimize_Click"/>
-                        <Button Width="20"
-                                Height="20"
+                        <Button Style="{StaticResource AppControlsButtonStyle}"
+                                Margin="0,0,10,0"
                                 Content="▢"
-                                Background="Transparent"
-                                BorderThickness="0"
-                                Foreground="Gray"
-                                FontWeight="Bold"
-                                Margin="10,0,0,0"
-                                FontSize="15"
                                 Click="Button_WindowState_Click"/>
-                        <Button Width="20"
-                                Height="20"
-                                Content="✕"
-                                Background="Transparent"
-                                BorderThickness="0"
-                                Foreground="Gray"
-                                FontWeight="Bold"
-                                Margin="10,0,10,0"
-                                FontSize="15"
+                        <Button Style="{StaticResource AppControlsButtonStyle}" 
+                                Content="✕" 
                                 Click="Button_Close_Click"/>
+
+
                     </StackPanel>
                     
                 </Grid>
             </Border>
             <Border Grid.Row="1"
                     Grid.ColumnSpan="2"
-                    BorderBrush="#AA4472C4"
-                    Background="#1E1F2B"
-                    BorderThickness="0,1,0,1">
+                    BorderBrush="#4D4D4D"
+                    Background="#121212"
+                    BorderThickness="0,0,0,2">
+                <Grid HorizontalAlignment="Stretch">
                     <!-- Element Properties -->
-                <StackPanel x:Name="PropertiesPanel" Orientation="Horizontal" IsEnabled="False">
-                    <TextBlock Text="Element Properties:" 
-                                       FontWeight="Bold" 
-                                       Foreground="White" 
-                                       Margin="0,0,20,0"
-                                       VerticalAlignment="Center"/>
-
-                    <!-- X Position -->
-                    <StackPanel Margin="0,0,15,0" Width="70">
-                        <TextBlock Text="X (px):" Foreground="White"
+                    <StackPanel x:Name="PropertiesPanel" 
+                            Orientation="Horizontal" 
+                            IsEnabled="False"
+                            Margin="10,5,0,0">
+                        <TextBlock  FontWeight="DemiBold"
+                                Foreground="White"
+                                Margin="0,0,20,0"
+                                VerticalAlignment="Center"
+                                TextAlignment="Center"
+                                Text="Element&#x0a;Properties" />
+                        <!-- Position -->
+                        <StackPanel Margin="0,5,5,5"
+                                Orientation="Vertical">
+                            <TextBlock Text="X (px):" Foreground="White"
                                    FontSize="11"/>
-                        <TextBox x:Name="PropX" 
-                 Text="0" 
-                 Margin="0,3,0,0"
-                 TextChanged="PropertyTextBox_TextChanged"
-                 PreviewTextInput="PropertyTextBox_PreviewTextInput"/>
-                    </StackPanel>
+                            <TextBlock Text="Y (px):" 
+                                   Foreground="White" 
+                                   FontSize="11"
+                                   Margin="0,7,0,0"/>
 
-                    <!-- Y Position -->
-                    <StackPanel Margin="0,0,15,0" Width="70">
-                        <TextBlock Text="Y (px):" Foreground="White" FontSize="11"/>
-                        <TextBox x:Name="PropY" 
-                 Text="0" 
-                 Margin="0,3,0,0"
-                 TextChanged="PropertyTextBox_TextChanged"
-                 PreviewTextInput="PropertyTextBox_PreviewTextInput"/>
-                    </StackPanel>
+                        </StackPanel>
+                        <StackPanel Margin="0,0,15,0" Width="70">
+                            <TextBox x:Name="PropX" 
+                                 Text="0" 
+                                 Margin="0,3,0,0"
+                                 TextChanged="PropertyTextBox_TextChanged"
+                                 PreviewTextInput="PropertyTextBox_PreviewTextInput"/>
 
-                    <!-- Width -->
-                    <StackPanel Margin="0,0,15,0" Width="70">
-                        <TextBlock Text="Width (px):" Foreground="White" FontSize="11"/>
-                        <TextBox x:Name="PropWidth" 
-                 Text="0" 
-                 Margin="0,3,0,0"
-                 TextChanged="PropertyTextBox_TextChanged"
-                 PreviewTextInput="PropertyTextBox_PreviewTextInput"/>
-                    </StackPanel>
+                            <TextBox x:Name="PropY" 
+                         Text="0" 
+                         Margin="0,3,0,0"
+                         TextChanged="PropertyTextBox_TextChanged"
+                         PreviewTextInput="PropertyTextBox_PreviewTextInput"/>
+                        </StackPanel>
 
-                    <!-- Height -->
-                    <StackPanel Margin="0,0,15,0" Width="70">
-                        <TextBlock Text="Height (px):" Foreground="White" FontSize="11"/>
-                        <TextBox x:Name="PropHeight" 
-                 Text="0" 
-                 Margin="0,3,0,0"
-                 TextChanged="PropertyTextBox_TextChanged"
-                 PreviewTextInput="PropertyTextBox_PreviewTextInput"/>
+                        <!-- Size -->
+                        <StackPanel Margin="0,5,5,5"
+                                Orientation="Vertical">
+                            <TextBlock Text="Width (px):" Foreground="White"
+                                   FontSize="11"/>
+                            <TextBlock Text="Height (px):" 
+                                   Foreground="White" 
+                                   FontSize="11"
+                                   Margin="0,7,0,0"/>
+
+                        </StackPanel>
+                        <StackPanel Margin="0,0,15,0" Width="70">
+                            <TextBox x:Name="PropWidth" 
+                                 Text="0" 
+                                 Margin="0,3,0,0"
+                                 TextChanged="PropertyTextBox_TextChanged"
+                                 PreviewTextInput="PropertyTextBox_PreviewTextInput"/>
+
+                            <TextBox x:Name="PropHeight" 
+                         Text="0" 
+                         Margin="0,3,0,0"
+                         TextChanged="PropertyTextBox_TextChanged"
+                         PreviewTextInput="PropertyTextBox_PreviewTextInput"/>
+                        </StackPanel>
                     </StackPanel>
-                </StackPanel>
+                    <Border Width="1"
+                            Background="#4D4D4D"
+                            HorizontalAlignment="Left"
+                            Margin="360,0,0,0"/>
+                    <Border Width="1"
+                            Background="#4D4D4D"
+                            HorizontalAlignment="Right"
+                            Margin="0,0,250,0"/>
+                    <!-- Label Properties-->
+                    <StackPanel HorizontalAlignment="Right"
+                                Orientation="Horizontal"
+                                Margin="0,5,0,0">
+                        <TextBlock  FontWeight="DemiBold"
+                                Foreground="White"
+                                Margin="0,0,10,0"
+                                VerticalAlignment="Center"
+                                TextAlignment="Center"
+                                Text="Label&#x0a;Properties" />
+                        <!-- Size -->
+                        <StackPanel Margin="0,5,5,5"
+                                Orientation="Vertical">
+                            <TextBlock Text="Width (in):" Foreground="White"
+                                   FontSize="11"/>
+                            <TextBlock Text="Height (in):" 
+                                   Foreground="White" 
+                                   FontSize="11"
+                                   Margin="0,7,0,0"/>
+
+                        </StackPanel>
+                        <StackPanel Margin="0,0,5,0" Width="70">
+                            <TextBox x:Name="WidthBox" 
+                                     Text="0" 
+                                     Margin="0,3,0,0"
+                                     PreviewTextInput="PropertyTextBox_PreviewTextInput"/>
+
+                            <TextBox x:Name="HeightBox" 
+                                     Text="0" 
+                                     Margin="0,3,0,0"
+                                     PreviewTextInput="PropertyTextBox_PreviewTextInput"/>
+                        </StackPanel>
+                        <Button Content="Resize"
+                                Click="ApplySize_Click" Margin="0,10,5,10"/>
+                    </StackPanel>
+                </Grid>
             </Border>
-
-            <StackPanel Grid.Row="2" Margin="10,0,0,0">
-                <!-- Label Size -->
-                <StackPanel>
-                    <TextBlock Text="Label Size" 
-                           FontWeight="Bold"
-                           Foreground="White"/>
-                    <TextBlock Text="Width (in):" 
-                           Margin="10,0,10,0"
-                           Foreground="White"/>
-                    <TextBox x:Name="WidthBox" Text="4" 
-                             Margin="10,0,10,5"
-                             PreviewTextInput="PropertyTextBox_PreviewTextInput"/>
-                    <TextBlock Text="Height (in):" 
-                               Margin="10,0,10,0"
-                               Foreground="White"/>
-                    <TextBox x:Name="HeightBox" Text="4" 
-                            Margin="10,0,10,10"
-                            PreviewTextInput="PropertyTextBox_PreviewTextInput"/>
-                    <Button Content="Set Label Size"
-                Click="ApplySize_Click" Margin="10,0,10,10"/>
-                </StackPanel>
-                <!-- Label Toolbox -->
-                <StackPanel>
-                    <TextBlock Text="Toolbox" FontWeight="Bold" 
+            <Border Grid.Row="2"
+                    BorderBrush="#4D4D4D"
+                    BorderThickness="0,0,2,0"
+                    >
+                <StackPanel Margin="10,10,0,0">
+                    <!-- Label Toolbox -->
+                    <StackPanel>
+                        <TextBlock Text="Toolbox" FontWeight="Bold" 
                            Margin="0,0,0,10"
                            Foreground="White"/>
-                    <Button Content="TextBox"
+                        <Button Content="TextBox"
                         Click="AddText_Click"
                         Height="25"
                         Foreground="White"
                         FontSize="14"
                         Style="{StaticResource MenuButtonTheme}"/>
-                    <Button Content="Image"
+                        <Button Content="Image"
                         Click="AddImage_Click"
                         Height="25"
                         Foreground="White"
                         FontSize="14"
                         Style="{StaticResource MenuButtonTheme}"/>
+                    </StackPanel>
                 </StackPanel>
-            </StackPanel>
+            </Border>
 
             <!-- Label canvas -->
             <Border Grid.Row="2" 
                     Grid.Column="1"
-		            BorderThickness="2" 
-                    Background="#1E1F2B"
-                    CornerRadius="20,0,20,0">
+		            BorderThickness="1" 
+                    BorderBrush="AliceBlue"
+                    Background="#2d2d30"
+                    CornerRadius="10"
+                    Margin="10">
                 <Viewbox Stretch="Uniform" OpacityMask="{DynamicResource {x:Static SystemColors.ActiveCaptionTextBrushKey}}">
                     <Canvas x:Name="LabelCanvas"
                             Margin="10,20,10,20"
