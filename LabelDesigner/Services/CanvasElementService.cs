@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -15,12 +16,14 @@ public class CanvasElementService
 {
     private readonly Canvas _labelCanvas;
     private readonly Action<UIElement> _onSelectionChanged;
+    private readonly Action<UIElement>? _onElementMoved;
     private Point _dragStartPoint = default;
 
-    public CanvasElementService(Canvas labelCanvas, Action<UIElement> onSelectionChanaged)
+    public CanvasElementService(Canvas labelCanvas, Action<UIElement> onSelectionChanaged, Action<UIElement>? onElementMoved)
     {
         _labelCanvas = labelCanvas;
         _onSelectionChanged = onSelectionChanaged;
+        _onElementMoved = onElementMoved;
     }
 
     /// <summary>
@@ -52,31 +55,14 @@ public class CanvasElementService
     /// <summary>
     /// Highlight a selected element and clear highlights from others.
     /// </summary>
-    public void HighlightSelectedElement(UIElement? element)
+    public void HighlightSelectedElement(UIElement element)
     {
+        if (element is null) return;
         // Clear all highlights
-        foreach (UIElement child in _labelCanvas.Children)
+        var adornerLayer = AdornerLayer.GetAdornerLayer(element);
+        if (adornerLayer != null)
         {
-            if (child is TextBox tb)
-            {
-                tb.BorderBrush = null;
-                tb.BorderThickness = new Thickness(0);
-            }
-            else if (child is Image img)
-            {
-                img.Opacity = 1.0;
-            }
-        }
-
-        // Highlight selected element
-        if (element is TextBox selected)
-        {
-            selected.BorderBrush = Brushes.Blue;
-            selected.BorderThickness = new Thickness(2);
-        }
-        else if (element is Image selectedImg)
-        {
-            selectedImg.Opacity = 0.8; // Visual feedback for selected image
+            adornerLayer.Add(new TransformAdorner(element));
         }
     }
 
@@ -149,6 +135,9 @@ public class CanvasElementService
             // Applies the new position to the element
             Canvas.SetLeft(element, newLeft);
             Canvas.SetTop(element, newTop);
+
+            _onElementMoved?.Invoke(element);
+
             // keep the drag start point with the mouse movement
             _dragStartPoint = position;
             e.Handled = true;

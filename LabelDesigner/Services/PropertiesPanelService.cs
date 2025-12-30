@@ -40,8 +40,8 @@ public class PropertiesPanelService
         else
         {
             _panel.IsEnabled = true;
-            _x.Text = domain.X.ToString("F0");
-            _y.Text = domain.Y.ToString("F0");
+            _x.Text = Canvas.GetLeft(element).ToString("F0");
+            _y.Text = Canvas.GetTop(element).ToString("F0");
             _width.Text = domain.ElementWidth.ToString("F0");
             _height.Text = domain.ElementHeight.ToString("F0");
         }

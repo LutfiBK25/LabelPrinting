@@ -1,5 +1,4 @@
 ﻿using LabelDesigner.Services;
-using LabelPrinting.Domain.Entities.Label;
 using LabelPrinting.Domain.Entities.Label.Elements;
 using Microsoft.Win32;
 using System.IO;
@@ -46,7 +45,7 @@ public partial class MainWindow : Window
         InitializeComponent();
 
         // Initialize canvas element service
-        _canvasElementService = new CanvasElementService(LabelCanvas, OnElementSelectionChanged);
+        _canvasElementService = new CanvasElementService(LabelCanvas, OnElementSelectionChanged, OnElementMoved);
 
         // Initialize Properties Panel Service
         _propertiesPanelService = new PropertiesPanelService(
@@ -98,46 +97,62 @@ public partial class MainWindow : Window
         MouseLeftButtonDown += Canvas_MouseLeftButtonDown;
     }
 
+    private void OnElementMoved(UIElement element)
+    {
+        if (_selectedElement != element)
+            return;
+
+        if (_elementMapping.TryGetValue(element, out var domain))
+        {
+            domain.X = Canvas.GetLeft(element);
+            domain.Y = Canvas.GetTop(element);
+
+            _propertiesPanelService.Update(element, domain);
+        }
+    }
+
     /// <summary>
     /// Callback when element selection changes.
     /// </summary>
     private void OnElementSelectionChanged(UIElement? element)
     {
-        // Remove adorners from previously selected element
-        if (_selectedElement != null)
-        {
-            var oldAdornerLayer = AdornerLayer.GetAdornerLayer(_selectedElement);
-            if (oldAdornerLayer != null)
-            {
-                var adorners = oldAdornerLayer.GetAdorners(_selectedElement);
-                if (adorners != null)
-                {
-                    foreach (var adorner in adorners.OfType<TransformAdorner>())
-                    {
-                        oldAdornerLayer.Remove(adorner);
-                    }
-                }
-            }
-        }
+        // Remove previous selection
+        ClearSelection();
+
+        if (element == null)
+            return;
 
         _selectedElement = element;
-        _elementMapping.TryGetValue(element!, out var domain);
+        _elementMapping.TryGetValue(element, out var domain);
         _propertiesPanelService.Update(element, domain);
-
         _canvasElementService.HighlightSelectedElement(element);
+    }
 
-        // Add adorner to newly selected element
-        if (element != null)
+    private void ClearSelection()
+    {
+        if (_selectedElement == null) return;
+
+        var adornerLayer = AdornerLayer.GetAdornerLayer(_selectedElement);
+        if (adornerLayer == null) return;
+            
+        var adorners = adornerLayer.GetAdorners(_selectedElement);
+        if (adorners == null) return;
+            
+        // Clear adorners
+        foreach (var adorner in adorners ?? [])
         {
-            var adornerLayer = AdornerLayer.GetAdornerLayer(element);
-            if (adornerLayer != null)
-            {
-                adornerLayer.Add(new TransformAdorner(element));
-            }
+            adornerLayer.Remove(adorner);
         }
 
-        //// Update properties panel
-        //UpdatePropertiesPanel(element);
+        if (_selectedElement != null && _selectedElement is TextBox tb)
+        {
+            tb.IsReadOnly = true;
+            tb.Focusable = false;  // Disable focus to prevent selection
+            tb.Cursor = Cursors.Arrow;
+        }
+
+        _selectedElement = null;
+        _propertiesPanelService.Update(null, null);
     }
 
     // Set canvas size during initialization
@@ -158,6 +173,7 @@ public partial class MainWindow : Window
                 _elementMapping.Remove(_selectedElement);
             }
             _selectedElement = null;
+            _propertiesPanelService.Update(null, null);
         }
     }
 
@@ -166,16 +182,9 @@ public partial class MainWindow : Window
         // Only deselect if clicking directly on canvas (not on a child element)
         if (e.Source == LabelCanvas)
         {
-            if (_selectedElement != null && _selectedElement is TextBox tb)
-            {
-                tb.IsReadOnly = true;
-                tb.Focusable = false;  // Disable focus to prevent selection
-                tb.Cursor = Cursors.Arrow;
-                Keyboard.ClearFocus(); // Clear focus from textbox
-            }
-            _selectedElement = null;
-            _propertiesPanelService.Update(null, null);
-            _canvasElementService.HighlightSelectedElement(null);
+
+            ClearSelection();
+            Keyboard.ClearFocus();
         }
     }
 
